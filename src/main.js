@@ -1,8 +1,13 @@
 let { init, Sprite, GameLoop, pointerPressed, pointer, keyPressed } = kontra
 let { canvas, context } = init();
+//let mySongData = zzfxM(...menu_theme);
 
 let sprites = [];
+let blocks = [];
 let heightmap = [];
+let cameraX = 0;
+const terrainLayers = 6;
+const baseTerrainPoints = 8;
 kontra.initKeys();
 kontra.initPointer();
 function cosp(a, b, mu) {
@@ -17,10 +22,10 @@ function xorshift32(a) {
 }
 
 function generateTerrain(seed) {
-    console.log(seed);
+    //console.log(seed);
+    blocks = [];
     heightmap = [];
-    let terrainLayers = 6;
-    let currentlayerPoints = 8;
+    let currentlayerPoints = baseTerrainPoints;
     let currentStrength = 0.5;
     for (i = 0; i < terrainLayers; i++) {
         let layer = [];
@@ -44,10 +49,20 @@ function generateTerrain(seed) {
     heightmap = heightmap[terrainLayers-1];
     heightmap = heightmap.slice(0,(heightmap.length+1));
     let min = Math.min(...heightmap); let max = Math.max(...heightmap);
-    heightmap = heightmap.map((point) => ((point-min)/(max-min) *0.5 +0.25));
+    heightmap = heightmap.map((point) => ((point-min)/(max-min) *0.5 +0.2));
+    // smoothing over an average of 3
+    let smoothedHeights = [];
+    smoothedHeights.push((heightmap[0] + heightmap[1])/2.0);
+    for (var i = 1; i < heightmap.length-1; i++)
+    {
+        var mean = (heightmap[i] + heightmap[i-1] + heightmap[i+1])/3.0;
+        smoothedHeights.push(mean);
+    }
+    smoothedHeights.push((heightmap[heightmap.length-1] + heightmap[heightmap.length-2])/2.0);
+    heightmap = smoothedHeights;
 
-    let blockWidth = canvas.width / heightmap.length;
-    // make it two screens wide + add scrolling based on bullet / player position (freecam?)
+    let blockWidth = canvas.width*2 / heightmap.length;
+    // todo: make it two screens wide + add scrolling based on bullet / player position (freecam?)
     for (i = 0; i < heightmap.length; i++) {
         let block = Sprite({
             x: blockWidth * i,
@@ -55,9 +70,37 @@ function generateTerrain(seed) {
             width: blockWidth,
             height: blockWidth,
             color: "green",
-            type: "block"
+            type: "block",
+            render() {
+                // draw a right-facing triangle
+                let ctx = this.context;
+                ctx.strokeStyle = 'green';
+                ctx.fillStyle = 'green';
+                ctx.save();
+                ctx.translate(this.x-cameraX, this.y);
+                ctx.beginPath();
+                ctx.moveTo(0, 0);
+                ctx.lineTo(this.width, this.drop);
+                ctx.lineTo(this.width, this.drop+20);
+                ctx.lineTo(0, 20);
+                ctx.fill();
+                ctx.closePath();
+                ctx.stroke();
+                ctx.strokeStyle = '#713b22';
+                ctx.fillStyle = '#713b22';
+                ctx.beginPath();
+                ctx.moveTo(0, 20);
+                ctx.lineTo(this.width, this.drop+20);
+                ctx.lineTo(this.width, 600);
+                ctx.lineTo(0, 600);
+                ctx.fill();
+                ctx.closePath();
+                ctx.stroke();
+                ctx.restore();
+            },
         });
-        sprites.push(block);
+        block.drop = (i+1 == heightmap.length ? 0 : ((1-heightmap[i+1]) * canvas.height)-block.y);
+        blocks.push(block);
     }
 }
 
@@ -75,7 +118,7 @@ let bullet = Sprite({
     render() {
         // draw a right-facing triangle
         let ctx = this.context;
-        ctx.strokeStyle = 'white';
+        ctx.strokeStyle = 'black';
         ctx.fillStyle = 'white';
         ctx.save();
         ctx.translate(this.x, this.y);
@@ -107,41 +150,63 @@ let player = Sprite({
     x: 290,
     y: 180,
     dx: 3,
-    dy: 3,
-    width: 20,
-    height: 40,
+    dy: 0,
+    ddy: 0,
+    width: 40,
+    height: 30,
     color: 'red',
-    // pass a custom update function to the sprite
+    grounded: true,
     update() {
-    // move the sprite with the keyboard
-    if (keyPressed('up') || keyPressed('w')) {
-        this.y -= this.dy;
-    }
-    if (keyPressed('down') || keyPressed('s')) {
-        this.y += this.dy;
-    }
-
-    if (keyPressed('left') || keyPressed('a')) {
-        this.x -= this.dx;
-    }
-    if (keyPressed('right') || keyPressed('d')) {
-        this.x += this.dx;
-    }
-
-    // reset the sprites position when it reaches the edge of the game
-    if (this.x > canvas.width) {
-        this.x = -this.width;
-    }
-    else if (this.x < -this.width) {
-        this.x = canvas.width;
-    }
-
-    if (this.y > canvas.height) {
-        this.y = -this.height;
-    }
-    else if (this.y < -this.height) {
-        this.y = canvas.height;
-    }
+        // move the sprite with the keyboard
+        if (keyPressed('left') || keyPressed('a')) {
+            this.x -= this.dx;
+        }
+        if (keyPressed('right') || keyPressed('d')) {
+            this.x += this.dx;
+        }
+        // reset the sprites position when it reaches the edge of the game
+        if (this.x > canvas.width*2 - this.width) {
+            this.x = canvas.width*2 - this.width;
+        }
+        else if (this.x < 0) {
+            this.x = 0;
+        }
+        let prevX = this.x;
+        this.advance();
+        this.x = prevX;
+        // collisions with ground
+        let totalPoints = (baseTerrainPoints*Math.pow(2,terrainLayers-1))+1;
+        //console.log(totalPoints);
+        let blockWidth = (canvas.width*2/totalPoints);
+        //blockWidth = (canvas.width*2/257);
+        let t_left = this.x / blockWidth, t_right = (this.x+this.width) / blockWidth;
+        let firstBlock = Math.floor(t_left);
+        let lastBlock = Math.ceil(t_right);
+        t_left -= firstBlock; t_right -= lastBlock-1;
+        lastBlock--;
+        // check first / last block - if any in between
+        let left_corner = ((heightmap[firstBlock+1] - heightmap[firstBlock])*t_left)+heightmap[firstBlock];
+        let right_corner = ( lastBlock+1 === heightmap.length ? heightmap[lastBlock]: ((heightmap[lastBlock+1] - heightmap[lastBlock])*t_right)+heightmap[lastBlock]);
+        let floorHeight =(Math.max(...heightmap.slice(firstBlock+1, lastBlock+1),left_corner, right_corner));
+        let worldFloor = ((1-floorHeight) * canvas.height) - this.height;
+        if (worldFloor > this.y) {
+            this.grounded = false;
+            this.ddy = 0.15;
+        } else {
+            this.grounded = true;
+            this.ddy = 0;
+            this.dy = 0;
+            this.y = worldFloor;
+            if (keyPressed("up")||keyPressed("w")) {
+                this.dy = -5;
+                this.y -= 5;
+            }
+        }
+    },
+    render() {
+        this.x -= cameraX;
+        this.draw();
+        this.x += cameraX;
     }
 });
 sprites.push(player);
@@ -155,7 +220,7 @@ generateTerrain(Date.now() & 0xFFFFFFFF);
 //generateTerrain(306379322);
 let loop = GameLoop({  // create the main game loop
   update() { // update the game state
-    console.log(`sprites: ${sprites.length}`);
+    //console.log(`sprites: ${sprites.length}`);
     sprites.map(sprite => {
       sprite.update();
     });
@@ -163,9 +228,17 @@ let loop = GameLoop({  // create the main game loop
     if (keyPressed('space')){
         SpawnBullet(pointer.x, pointer.y, Math.random() * 4 -2,(Math.random()*3+2)*-1);
     }
+    if (keyPressed('q')){
+        cameraX -=5;
+    }
+    if (keyPressed('e')){
+        cameraX +=5;
+    }
+    cameraX = Math.min(canvas.width,Math.max(0, cameraX));
   },
   render() { // render the game state
     sprites.map(sprite => sprite.render());
+    blocks.map(block => block.render());
   },
 });
 

@@ -16,3 +16,8 @@ aug 17th
 - using xorshift32 for terrain generation to send seeds (can also re-purpose it for item drops, maybe even player spawns?)
 - got it as blocks, but would like some more interpolation even if there's no destruction (rolling hills)
 - set up the github repo
+
+aug 18th
+- finished terrain generation / rendering
+- got player movement, plus collision with the floor
+- started work on music - main menu first
