@@ -1,0 +1,18 @@
+day 1 (16th):
+- got the ball rolling
+- using kontra 6.9.1 (last version that will give me headroom)
+- going for a sort of shellshock live with platforming elements deal
+- may add online play if i have space
+- tomorrow: making npm play nice + installing rollup if i can
+- roadroller was used in q1k3; something to consider? find a good minifier beforehand
+- next project steps: scene mental map, research how Frank made Little Paws to make a level generator, then a platformer controller atop that
+- if the brains don't align for online multiplayer, local multiplayer still seems fun
+- controls to map for: run (a/s, left/right), jump (w, up), switch between building and firing (q/e, k/l), setting to place / shoot (z, n, press again to confirm)
+...cancelling(c, m), controlling the shot (up, down, more/less power; wasd, udlr), placing u/d/l/r (wasd, udlr)
+
+aug 17th
+- node appears to have fixed itself
+- went for terrain based off of this substack: https://arpit.substack.com/p/1d-procedural-terrain-generation
+- using xorshift32 for terrain generation to send seeds (can also re-purpose it for item drops, maybe even player spawns?)
+- got it as blocks, but would like some more interpolation even if there's no destruction (rolling hills)
+- set up the github repo
