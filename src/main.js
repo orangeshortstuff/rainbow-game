@@ -1,4 +1,4 @@
-let { init, Sprite, GameLoop, pointerPressed, pointer, keyPressed } = kontra
+let { init, Sprite, SpriteSheet, GameLoop, pointerPressed, pointer, keyPressed } = kontra
 let { canvas, context } = init();
 //let mySongData = zzfxM(...menu_theme);
 
@@ -6,10 +6,14 @@ let sprites = [];
 let blocks = [];
 let heightmap = [];
 let cameraX = 0;
+let currentMenu = 0;
+let gameType = 2; // 1 for vs bot, 2 for local multiplayer, 3 for online, 0 for the lobby
+let currentWood = 100, currentMetal = 100; // pickups are +3
 const terrainLayers = 6;
 const baseTerrainPoints = 8;
 kontra.initKeys();
 kontra.initPointer();
+
 function cosp(a, b, mu) {
     mu2 = (1 - Math.cos(mu * Math.PI)) / 2;
     return a * (1 - mu2) + b * mu2;
@@ -22,7 +26,6 @@ function xorshift32(a) {
 }
 
 function generateTerrain(seed) {
-    //console.log(seed);
     blocks = [];
     heightmap = [];
     let currentlayerPoints = baseTerrainPoints;
@@ -68,8 +71,6 @@ function generateTerrain(seed) {
             x: blockWidth * i,
             y: (1-heightmap[i]) * canvas.height,
             width: blockWidth,
-            height: blockWidth,
-            color: "green",
             type: "block",
             render() {
                 // draw a right-facing triangle
@@ -102,6 +103,22 @@ function generateTerrain(seed) {
         block.drop = (i+1 == heightmap.length ? 0 : ((1-heightmap[i+1]) * canvas.height)-block.y);
         blocks.push(block);
     }
+}
+
+function getWorldFloor(x, width, height) {
+    let totalPoints = (baseTerrainPoints*Math.pow(2,terrainLayers-1))+1;
+    let blockWidth = (canvas.width*2/totalPoints);
+    let t_left = x / blockWidth, t_right = (x+width) / blockWidth;
+    let firstBlock = Math.floor(t_left);
+    let lastBlock = Math.ceil(t_right);
+    t_left -= firstBlock; t_right -= lastBlock-1;
+    lastBlock--;
+    // check first / last block - if any in between
+    let left_corner = ((heightmap[firstBlock+1] - heightmap[firstBlock])*t_left)+heightmap[firstBlock];
+    let right_corner = ( lastBlock+1 === heightmap.length ? heightmap[lastBlock]: ((heightmap[lastBlock+1] - heightmap[lastBlock])*t_right)+heightmap[lastBlock]);
+    let floorHeight =(Math.max(...heightmap.slice(firstBlock+1, lastBlock+1),left_corner, right_corner));
+    let worldFloor = ((1-floorHeight) * canvas.height) - height;
+    return worldFloor;
 }
 
 function SpawnBullet(p_x,p_y,v_x,v_y) {
@@ -152,81 +169,188 @@ let player = Sprite({
     dx: 3,
     dy: 0,
     ddy: 0,
-    width: 40,
-    height: 30,
-    color: 'red',
+    width: 32,
+    height: 32,
+    color: 'blue',
     grounded: true,
     update() {
         // move the sprite with the keyboard
-        if (keyPressed('left') || keyPressed('a')) {
-            this.x -= this.dx;
-        }
-        if (keyPressed('right') || keyPressed('d')) {
-            this.x += this.dx;
-        }
-        // reset the sprites position when it reaches the edge of the game
-        if (this.x > canvas.width*2 - this.width) {
-            this.x = canvas.width*2 - this.width;
-        }
-        else if (this.x < 0) {
-            this.x = 0;
+        if (currentMenu == 0) {
+            if (keyPressed('left') || keyPressed('a')) {
+                this.x -= this.dx;
+                this._fx = -1;
+                if (this.currentAnimation != this.animations["jump"] && this.currentAnimation != this.animations["fall"]) {
+                    this.playAnimation("walk");
+                }
+            }
+            else if (keyPressed('right') || keyPressed('d')) {
+                this.x += this.dx;
+                this._fx = 1;
+                if (this.currentAnimation != this.animations["jump"] && this.currentAnimation != this.animations["fall"]) {
+                    this.playAnimation("walk");
+                }
+            } else {
+                this.playAnimation("idle");
+            }
+            // reset the sprites position when it reaches the edge of the game
+            if (this.x > canvas.width*2 - this.width) {
+                this.x = canvas.width*2 - this.width;
+            }
+            else if (this.x < 0) {
+                this.x = 0;
+            }
         }
         let prevX = this.x;
         this.advance();
         this.x = prevX;
         // collisions with ground
-        let totalPoints = (baseTerrainPoints*Math.pow(2,terrainLayers-1))+1;
-        //console.log(totalPoints);
-        let blockWidth = (canvas.width*2/totalPoints);
-        //blockWidth = (canvas.width*2/257);
-        let t_left = this.x / blockWidth, t_right = (this.x+this.width) / blockWidth;
-        let firstBlock = Math.floor(t_left);
-        let lastBlock = Math.ceil(t_right);
-        t_left -= firstBlock; t_right -= lastBlock-1;
-        lastBlock--;
-        // check first / last block - if any in between
-        let left_corner = ((heightmap[firstBlock+1] - heightmap[firstBlock])*t_left)+heightmap[firstBlock];
-        let right_corner = ( lastBlock+1 === heightmap.length ? heightmap[lastBlock]: ((heightmap[lastBlock+1] - heightmap[lastBlock])*t_right)+heightmap[lastBlock]);
-        let floorHeight =(Math.max(...heightmap.slice(firstBlock+1, lastBlock+1),left_corner, right_corner));
-        let worldFloor = ((1-floorHeight) * canvas.height) - this.height;
+        let worldFloor = getWorldFloor(this.x, this.width, this.height);
         if (worldFloor > this.y) {
             this.grounded = false;
             this.ddy = 0.15;
+            if (this.jumped || (this.dy > 1.5)) {
+                if (this.dy < 0) {
+                    this.playAnimation("jump");
+                } else {
+                    this.playAnimation("fall");
+                }
+            }
         } else {
+            if (this.currentAnimation == this.animations["jump"] || this.currentAnimation == this.animations["fall"]) {
+                this.playAnimation("idle");
+            }
             this.grounded = true;
+            this.jumped = false;
             this.ddy = 0;
             this.dy = 0;
             this.y = worldFloor;
-            if (keyPressed("up")||keyPressed("w")) {
+            if ((keyPressed("up")||keyPressed("w")) && currentMenu == 0) { // prevent jumps if building
                 this.dy = -5;
                 this.y -= 5;
+                this.jumped = true;
             }
         }
     },
+    
     render() {
         this.x -= cameraX;
+        // get an image for the spritesheet - render the horn separately
+        let c = this.context;
+        c.save();
         this.draw();
+        c.restore();
+        
         this.x += cameraX;
     }
 });
 sprites.push(player);
+
+let unicorn_anims = {
+    idle: {
+        frames: 0,
+        loop: false
+    },
+    walk: {
+        frames: [1,2],
+        frameRate: 6,
+        loop: true,
+    },
+    jump: {
+        frames: 3,
+        loop: false
+    },
+    fall: {
+        frames: 4,
+        loop: false
+    }
+};
+let unicorn_image = new Image();
+unicorn_image.src = 'images/unicorn.png';
+unicorn_image.onload = function() {
+    let unicorn_sheet = SpriteSheet({
+        image: unicorn_image,
+        frameWidth: 16,
+        frameHeight: 16,
+        frameMargin: 0,
+    });
+    unicorn_sheet.createAnimations(unicorn_anims);
+    player.animations = unicorn_sheet.animations;
+    player.playAnimation('idle');
+};
+
+let unicorn_shift_image = new Image();
+unicorn_shift_image.src = 'images/unicorn hueshift.png';
+unicorn_shift_image.onload = function() {
+    let unicorn_shift_sheet = SpriteSheet({
+        image: unicorn_shift_image,
+        frameWidth: 16,
+        frameHeight: 16,
+        frameMargin: 0,
+    });
+    unicorn_shift_sheet.createAnimations(unicorn_anims);
+}
 
 // prevent default key behavior
 kontra.bindKeys(['up', 'down', 'left', 'right'], function(e) {
     e.preventDefault();
 });
 
+// button callbacks
+
+function fireMenu() {
+    currentMenu = 1;
+}
+const fb = document.querySelector(".btn-fire");
+fb.onclick = function() {fireMenu();}
+
+function buildMenu() {
+    currentMenu = 2;
+}
+const bb = document.querySelector(".btn-build");
+bb.onclick = function() {buildMenu();}
+
+function endTurn() {
+    alert("END TURN");
+}
+const etb = document.querySelector(".btn-end-turn");
+etb.onclick = function() {endTurn();}
+
+const uf = document.querySelector(".ui-fire");
+const ub = document.querySelector(".ui-build");
+const gc = document.querySelector(".game-controls");
+
 generateTerrain(Date.now() & 0xFFFFFFFF);
 //generateTerrain(306379322);
 let loop = GameLoop({  // create the main game loop
   update() { // update the game state
-    //console.log(`sprites: ${sprites.length}`);
+    if (!gameType > 0) {
+        gc.classList.add("none");
+        gc.classList.add("hidden");
+        return;
+    } else {
+        gc.classList.remove("none");
+        gc.classList.remove("hidden");
+    }
+    uf.classList.add("none");
+    ub.classList.add("none");
+    // update current UI
+    switch (currentMenu) {
+        case 1: { uf.classList.remove("none"); break; }
+        case 2: { ub.classList.remove("none"); 
+            ub.innerHTML = `🪵: ${currentWood}<br/>🪨: ${currentMetal}`;
+        }
+        default: break;
+    }
+    
     sprites.map(sprite => {
       sprite.update();
     });
     sprites = sprites.filter(sprite => sprite.isAlive());
     if (keyPressed('space')){
-        SpawnBullet(pointer.x, pointer.y, Math.random() * 4 -2,(Math.random()*3+2)*-1);
+        SpawnBullet(player.x, player.y, Math.random() * 4 -2,(Math.random()*3+2)*-1);
+    }
+    if (keyPressed('c')){
+        currentMenu = 0;
     }
     if (keyPressed('q')){
         cameraX -=5;
@@ -237,6 +361,7 @@ let loop = GameLoop({  // create the main game loop
     cameraX = Math.min(canvas.width,Math.max(0, cameraX));
   },
   render() { // render the game state
+    if (!gameType > 0) {return;}
     sprites.map(sprite => sprite.render());
     blocks.map(block => block.render());
   },

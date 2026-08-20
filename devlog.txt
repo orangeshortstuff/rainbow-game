@@ -21,3 +21,12 @@ aug 18th
 - finished terrain generation / rendering
 - got player movement, plus collision with the floor
 - started work on music - main menu first
+- taking notes design-wise from https://github.com/js13kGames/back-to-that-platform-i-was-on-before-jumping/blob/master/index.html
+
+aug 19th
+- break for burnout
+- started work on unicorn graphics (will need to go back once i have an idea of how much space i have)
+
+aug 20th
+- worked on ingame UI and turn logic
+- found a good enough unicorn sprite: https://opengameart.org/content/running-unicorn-0 - modded it for a proper set of animations, and made a second sprite off of it for player 2

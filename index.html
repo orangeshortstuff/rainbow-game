@@ -8,10 +8,10 @@
     <script src="https://play.js13kgames.com/2026/online/partysocket.js"></script>
 </head>
 <body>
-    <canvas width="1000" height="600"></canvas>
     <style>
         body {
         background: black;
+        font-family: system-ui;
         }
         canvas {
         border: 1px solid white;
@@ -22,10 +22,90 @@
         margin-right: auto;
         display: block;
         }
+        .hidden {
+        opacity: 0;
+        pointer-events: none;
+        }
         .none {
         display: none;
         }
+        
+        .game-ui {
+        position: absolute;
+        top: 8px;
+        left: 16px;
+        right: 16px;
+        display: flex;
+        justify-content: space-between;
+        color: #111;
+        font-size: 16px;
+        font-weight: bold;
+        width: 1000px;
+        height: 600px;
+        margin-left: auto;
+        margin-right: auto;
+        }
+
+        .game-controls {
+        position: absolute;
+        top: 520px;
+        left: 0px;
+        width: 1000px;
+        height: 80px;
+            button {
+            padding: 8px 16px;
+            border-radius: 2px;
+            border: none;
+            font-size: 30px;
+            letter-spacing: 1px;
+            color: white;
+            border: 2px solid #2e2e2e;
+            }
+            p {
+            position: absolute;
+            vertical-align: text-top;
+            top: 0px;
+            left: 550px;
+            margin: 0;
+            font-size: 24px;
+            background-color: #29538a;
+            border: 2px solid #111;
+            padding: 3px;
+            }
+        }
+        
+        .btn-fire {
+        position: absolute;
+        top: 0px;
+        left: 50px;
+        background-color: #d23737;
+        }
+
+        .btn-build {
+        position: absolute;
+        top: 0px;
+        left: 190px;
+        background-color: #3737d2;
+        }
+
+        .btn-end-turn {
+        position: absolute;
+        top: 0px;
+        left: 350px;
+        background-color: #37d237;
+        }
+        
     </style>
+    <canvas width="1000" height="600"></canvas>
+    <section class="game-ui">
+    <section class="game-controls">
+        <button class="btn-fire">Fire</button>
+        <button class="btn-build">Build</button>
+        <button class="btn-end-turn">End Turn</button>
+        <p class="ui-fire">Power: 30<br/>Angle: 25</p>
+        <p class="ui-build">🪵: 3<br/>🪨: 2</p>
+    </section>
+    </section>
     <script src="src/main.js"></script>
 </body>
 </html>
