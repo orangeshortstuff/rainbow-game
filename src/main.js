@@ -1,18 +1,24 @@
-//! ZzFXM (v2.0.3) | (C) Keith Clark | MIT | https://github.com/keithclark/ZzFXM
-zzfx=(...z)=>zzfxP(zzfxG(...z)),zzfxP=(...z)=>{let t=zzfxX.createBufferSource(),f=zzfxX.createBuffer(z.length,z[0].length,zzfxR);return z.map((z,t)=>f.getChannelData(t).set(z)),t.buffer=f,t.connect(zzfxX.destination),t.start(),t},zzfxG=(z=1,t=.05,f=220,e=0,x=0,a=.1,n=0,h=1,r=0,M=0,R=0,o=0,i=0,s=0,l=0,u=0,g=0,d=1,c=0,m=0)=>{let b,w,P=2*Math.PI,X=r*=500*P/zzfxR**2,C=(0<l?1:-1)*P/4,G=f*=(1+2*t*Math.random()-t)*P/zzfxR,p=[],A=0,B=0,I=0,V=1,k=0,D=0,S=0;for(e=99+zzfxR*e,c*=zzfxR,x*=zzfxR,a*=zzfxR,g*=zzfxR,M*=500*P/zzfxR**3,l*=P/zzfxR,R*=P/zzfxR,o*=zzfxR,i=zzfxR*i|0,w=e+c+x+a+g|0;I<w;p[I++]=S)++D%(100*u|0)||(S=n?1<n?2<n?3<n?Math.sin((A%P)**3):Math.max(Math.min(Math.tan(A),1),-1):1-(2*A/P%2+2)%2:1-4*Math.abs(Math.round(A/P)-A/P):Math.sin(A),S=(i?1-m+m*Math.sin(2*Math.PI*I/i):1)*(0<S?1:-1)*Math.abs(S)**h*z*zzfxV*(I<e?I/e:I<e+c?1-(I-e)/c*(1-d):I<e+c+x?d:I<w-g?(w-I-g)/a*d:0),S=g?S/2+(g>I?0:(I<w-g?1:(w-I)/g)*p[I-g|0]/2):S),b=(f+=r+=M)*Math.sin(B*l-C),A+=b-b*s*(1-1e9*(Math.sin(I)+1)%2),B+=b-b*s*(1-1e9*(Math.sin(I)**2+1)%2),V&&++V>o&&(f+=R,G+=R,V=0),!i||++k%i||(f=G,r=X,V=V||1);return p},zzfxV=.3,zzfxR=44100,zzfxX=new(window.AudioContext||webkitAudioContext),zzfxM=(z,t,f,e=125)=>{let x,a,n,h,r,M,R,o,i,s,l,u,g,d,c,m=0,b=[],w=[],P=[],X=0,C=0,G=1,p={},A=zzfxR/e*60>>2;for(;G;X++)b=[G=o=l=g=0],f.map((e,l)=>{for(R=t[e][X]||[0,0,0],G|=!!t[e][X],c=g+(t[e][0].length-2-!o)*A,d=l==f.length-1,a=2,h=g;a<R.length+d;o=++a){for(r=R[a],i=a==R.length+d-1&&d||s!=(R[0]||0)|r|0,n=0;n<A&&o;n++>A-99&&i?u+=(u<1)/99:0)M=(1-u)*b[m++]/2||0,w[h]=(w[h]||0)-M*C+M,P[h]=(P[h++]||0)+M*C+M;r&&(u=r%1,C=R[1]||0,(r|=0)&&(b=p[[s=R[m=0]||0,r]]=p[[s,r]]||(x=[...z[s]],x[2]*=2**((r-12)/12),r>0?zzfxG(...x):[])))}g=c});return[w,P]};
+import {zzfx, zzfxP, zzfxG, zzfxV, zzfxR, zzfxX, zzfxM} from  "../zzfxm.min.js";
 const menu_theme = [[[,0,254,,,.25],[,0,440,,,,,,,,,,,80,,,,.75],[.6,0,64,,,.32,2,.3]],[[[,,9,,,,9,,,,,,9,,,,7,,,,7,,,,,,7,,,,7,,,,],[,,13,,,,13,,,,,,13,,,,12,,,,12,,,,,,12,,,,12,,,,],[,,16,,,,16,,,,,,16,,,,14,,,,14,,,,,,14,,,,14,,,,],[2,,9,,,,16,,,,16,,9,,,,7,,,,,,,,,,,,5,,7,,8,,],[1,,,,,,1,,1,,,,,,1,,,,,,,,1,,1,,,,1,,,,1,,]],[[,,9,,,,9,,,,,,9,,,,7,,,,,,7,,,,,,,,,,,,],[,,13,,,,13,,,,,,13,,,,12,,,,,,12,,,,,,,,,,,,],[,,16,,,,16,,,,,,16,,,,14,,,,,,14,,,,,,,,,,,,],[2,,9,,,,16,,,,16,,9,,,,7,,,,,,19,,,,19,,18,,14,,15,,],[1,,,,,,1,,1,,,,,,1,,,,,,,,1,,1,,,,1,,1,,1,,]],[[,,9,,,,9,,,,,,9,,,,7,,,,7,,,,,,7,,,,7,,,,],[,,13,,,,13,,,,,,13,,,,12,,,,12,,,,,,12,,,,12,,,,],[,,16,,,,16,,,,,,16,,,,14,,,,14,,,,,,14,,,,14,,,,],[2,,16,,9,,,,,,,,9,,14,,7,,,,7,,,,,,7,,,,7,,,,],[1,,,,,,1,,1,,,,,,1,,,,,,,,1,,1,,,,1,,,,1,,]],[[,,5,,,,5,,,,,,5,,,,7,,,,7,,,,,,7,,,,7,,,,],[,,7,,,,7,,,,,,7,,,,5,,,,12,,,,,,12,,,,12,,,,],[,,12,,,,12,,,,,,12,,,,12,,,,14,,,,,,14,,,,14,,,,],[2,,5,,,,5,,,,2.5,,5,,,,5,,,,,,4,,,,4,,,,2,,,,],[1,,,,,,1,,1,,,,,,1,,,,,,,,1,,1,,,,1,,1,,1,,]],[[1,,,,,,1,,1,,,,,,1,,,,,,,,1,,1,,,,1,,,,1,,]],[[1,,,,,,1,,1,,,,,,1,,1,,,,,,1,,1,,,,1,,1,,1,,]],[[1,,,,,,1,,1,,,,1,,1.49,,1,,,,,,,,,,,,,,,,,,]]],[0,1,2,3,0,1,2,3,4,5,6],155,{"title":"menu theme","instruments":["a","b","c"],"patterns":["0","1","2","3","4","5","6"]}];
 let menu_data = zzfxM(...menu_theme);
 let menu_audio = zzfxP(...menu_data);
 menu_audio.loop = true;
 menu_audio.stop();
 
-let { init, Sprite, SpriteSheet, GameLoop, pointerPressed, pointer, keyPressed, emit } = kontra
+let fire_sfx = [,0,464,.01,.07,.08,2,2.5,-4,3,,,,,,,,.53,.09];
+let explode_sfx = [2,,33,.09,.15,.41,4,.2,-6,-1,,,,.1,,.6,.23,.38,.18];
+let pickup_sfx = [1.8,0,321,.03,.06,.26,1,2.4,,,239,.08,,,,,.1,.67,.01];
+let jump_sfx = [.9,,395,.01,,,,3.5,11,65,,,,,,,,.72,.02,,-1499];
+let win_sfx = [,0,325,.04,.2,.71,1,3.5,,158,350,.17,.03,,,,.25,.96,.26,.23,737];
+
+import { init, initKeys, Sprite, SpriteSheet, GameLoop, keyPressed, on, off, emit, bindKeys } from "../kontra.min.mjs"
+
 let { canvas, context } = init();
 
-// left, right, jump, camera left, camera right, power up, power down
+// left, right, down, jump, camera left, camera right, fire/place, cancel, select material / weapon
 let controls = [
-    ["a","d","w","q","e", "z", "x"],
-    ["left","right","up"]
+    ["a","d","s","w","q","e","z","c","r","t"],
+    ["left","right","down","up"]
 ];
 let sprites = [];
 let blocks = [];
@@ -27,11 +33,10 @@ let currentWood = 100, currentMetal = 100; // pickups are +3
 let currentAngle = 45, currentPower = 50;
 const terrainLayers = 6;
 const baseTerrainPoints = 8;
-kontra.initKeys();
-kontra.initPointer();
+initKeys();
 
 function cosp(a, b, mu) {
-    mu2 = (1 - Math.cos(mu * Math.PI)) / 2;
+    let mu2 = (1 - Math.cos(mu * Math.PI)) / 2;
     return a * (1 - mu2) + b * mu2;
 }
 
@@ -59,7 +64,7 @@ function setTimer(name, time, callback) {
             }
         }
     });
-    kontra.on(`timer-${name}`, callback);
+    on(`timer-${name}`, callback);
     timers.push(timer);
 };
 
@@ -68,9 +73,9 @@ function generateTerrain(seed) {
     heightmap = [];
     let currentlayerPoints = baseTerrainPoints;
     let currentStrength = 0.5;
-    for (i = 0; i < terrainLayers; i++) {
+    for (let i = 0; i < terrainLayers; i++) {
         let layer = [];
-        for (j = 0; j <= currentlayerPoints; j++) {
+        for (let j = 0; j <= currentlayerPoints; j++) {
             seed = xorshift32(seed);
             layer[j] = seed/4294967296;
         }
@@ -80,9 +85,9 @@ function generateTerrain(seed) {
         currentStrength *= 0.5;
     }
     // merge layers
-    for (i = 0; i < terrainLayers-1; i++) {
+    for (let i = 0; i < terrainLayers-1; i++) {
         let len = heightmap[i].length;
-        for (j=0; j<heightmap[terrainLayers-1].length; j++) {
+        for (let j=0; j<heightmap[terrainLayers-1].length; j++) {
             let idx = j/Math.pow(2,(terrainLayers-1)-i);
             heightmap[terrainLayers-1][j] += cosp(heightmap[i][Math.floor(idx)],heightmap[i][Math.ceil(idx)], idx-Math.floor(idx));
         }
@@ -179,6 +184,86 @@ let cover = Sprite({
 sprites.push(cover);
 }
 
+function makePreviewPoint(i) {
+    let preview = Sprite({
+        anchor: {x: 0.5, y: 0.5},
+        radius: (15-i)/2,
+        color: `rgba(255, 255, 255, ${1-(i*0.03)})`,
+        update() {
+            let a = players[activePlayer];
+            let magnitude = currentPower * 0.18;
+            let v_x = magnitude*Math.cos((Math.PI / 180) * currentAngle)*a._fx;
+            let v_y = magnitude*Math.sin((Math.PI / 180) * currentAngle)*-1;
+            let t = (8-this.radius)*6;
+            this.x = a.x+ 8.5*(3*a._fx+1)+(t*v_x);
+            this.y = a.y+(t*v_y+(t*t*0.075));
+        },
+        render() {
+            if (currentMenu != 1) {return;}
+            let c= this.context;
+            c.save();
+            c.translate(this.x-cameraX, this.y);
+            c.fillStyle = this.color;
+            c.beginPath();
+            c.arc(0, 0, this.radius, 0, 2  * Math.PI);
+            c.fill();
+            c.restore();
+        }
+    });
+    sprites.push(preview);
+}
+for(let i=0; i<10; i++) {
+    makePreviewPoint(i);
+}
+
+function makeExplosionParticle(x,y) {
+    let x_particle = Sprite({
+        x: x + 100*(Math.random()-0.5),
+        y: y + 100*(Math.random()-0.5),
+        radius: (24*Math.random())+6,
+        ttl: (55*Math.random())+5,
+        update() {
+            this.color=`lch(${45+(this.ttl/3)}% ${0.33*this.ttl+66} ${27.1+this.ttl})`;
+            this.radius *= 0.92;
+            if (this.radius < 0) {
+                this.ttl = 0;
+            }
+        },
+        render() {
+            let c= this.context;
+            c.save();
+            c.translate(this.x-cameraX, this.y);
+            c.fillStyle = this.color;
+            c.beginPath();
+            c.arc(0, 0, this.radius, 0, 2  * Math.PI);
+            c.fill();
+            c.restore();
+        }
+    });
+    sprites.push(x_particle);
+}
+
+function explosion(x,y) {
+    zzfx(...explode_sfx);
+    // player damage
+    players.map(player => {
+        let dist = Math.hypot(x-(0.5*player.width +player.x),y-(0.5*player.height +player.y));
+        if (dist < 100) {
+            player.health -= Math.round(Math.max(0,Math.min(20,40-(dist/2.5))));
+        }
+        if (players[0].health < 1 && players[1].health < 1) {
+            players[1-activePlayer].health = 1;
+        }
+        if (player.health < 1) {
+            endGame();
+        }
+    });
+    // spawn particles
+    for(let i=0; i<20; i++) {
+        makeExplosionParticle(x, y);
+    }
+}
+
 function spawnBullet(p_x,p_y,v_x,v_y) {
 let bullet = Sprite({
     x: p_x,
@@ -186,10 +271,11 @@ let bullet = Sprite({
     dx: v_x,
     dy: v_y,
     ddy: 0.15,
-    width: 20,
-    height: 20,
+    width: 15,
+    height: 15,
     colour:"white",
-    rotation: Math.atan2(this.dy, this.dx),
+    type:"bullet",
+    rotation: currentAngle,
     render() {
         // draw a right-facing triangle
         let ctx = this.context;
@@ -210,16 +296,33 @@ let bullet = Sprite({
     update() {
         this.rotation=Math.atan2(this.dy, this.dx);
         this.advance();
-        if (this.y > getWorldFloor(this.x, this.width, this.height)) {
-            this.ttl = 0;
-        }
         if (this.x > canvas.width+cameraX || this.x < 0) {
             this.ttl = 0;
+            endTurn();
+            return;
         }
-        
         // player collisions
+        players.map(player => {
+            if (this.x + this.width > player.x && this.x < player.x + player.width && 
+                this.y + this.height > player.y && this.y < player.y + player.height) {
+                this.ttl = 0;
+                player.health -= 5;
+                endTurn();
+                explosion(0.5*this.width+this.x, 0.5*this.height+this.y);
+                return;
+            }
+        });
+        
+        if (this.y > getWorldFloor(this.x, this.width, this.height)) {
+            this.ttl = 0;
+            endTurn();
+            // explode on floor - calculate splash damage
+            explosion(0.5*this.width+this.x, getWorldFloor(this.x, this.width, this.height));
+            return;
+        }
     }
 });
+bullet.advance();
 sprites.push(bullet);
 }
 
@@ -236,6 +339,7 @@ function spawnPlayer(x,y) {
         health: 100,
         grounded: true,
         update() {
+            this.health = Math.max(Math.min(this.health,100),0);
             if (gameType == 0 || inMenuTransition > 0) { return; }
             // move the sprite with the keyboard
             if (this.id == activePlayer && currentMenu == 0) {
@@ -299,20 +403,21 @@ function spawnPlayer(x,y) {
                 currentPower += (keyPressed("right") - keyPressed("left"));
                 currentPower = Math.max(0,Math.min(100,currentPower));
                 if (keyPressed('z')) {
-                    let magnitude = currentPower * 0.15;
-                    spawnBullet(this.x + 15*(1+this._fx),this.y,
+                    let magnitude = currentPower * 0.18;
+                    // -1, -17 / 1, 34
+                    spawnBullet(this.x + 8.5*(3*this._fx+1),this.y,
                                 magnitude*Math.cos((Math.PI / 180) * currentAngle)*this._fx,
                                 magnitude*Math.sin((Math.PI / 180) * currentAngle)*-1);
-                    endTurnMenu();
+                    zzfx(...fire_sfx);
+                    inMenuTransition = 1;
                     currentMenu = 0;
-                    console.log("fire");
                 }
             }
             
         },
         
         render() {
-            if (gameType == 0) { return; }
+            if (gameType == 0 || this.health < 1) { return; }
             this.x -= cameraX;
             // get an image for the spritesheet - render the horn separately
             let c = this.context;
@@ -320,9 +425,14 @@ function spawnPlayer(x,y) {
             this.draw();
             // hp text
             c.font = "20px system-ui";
-            c.fillStyle = `lch(${55+(this.health/3)}% 100 ${this.health+37.97})`;
+            c.fillStyle = "black";
             let text_size = c.measureText(`${this.health}`);
-            c.fillText(`${this.health}`, (this.x)-((text_size.width-this.width)/2), this.y-0);
+            c.fillText(`${this.health}`, (this.x)-((text_size.width-this.width)/2), this.y-10);
+            c.fillRect(this.x,this.y-8,this.width, 8);
+            c.fillStyle = "lch(55% 100 37.97)";
+            c.fillRect(this.x+1,this.y-7,this.width-2, 6);
+            c.fillStyle = `lch(${55+(this.health/3)}% 100 ${this.health+37.97})`;
+            c.fillRect(this.x+1,this.y-7,(this.width-2)*(this.health/100), 6);
             c.restore();
             this.x += cameraX;
         }
@@ -380,45 +490,82 @@ unicorn_shift_image.onload = function() {
     players[1].playAnimation('idle');
 }
 
-// prevent default key behavior
-kontra.bindKeys(['up', 'down', 'left', 'right'], function(e) {
-    e.preventDefault();
-});
-
 // button callbacks
 function fireMenu() {
     currentMenu = 1;
 }
-const fb = document.querySelector(".btn-fire");
+const fb = document.querySelector(".fire");
 fb.onclick = function() {fireMenu();}
 
 function buildMenu() {
     currentMenu = 2;
 }
-const bb = document.querySelector(".btn-build");
+const bb = document.querySelector(".build");
 bb.onclick = function() {buildMenu();}
 
-function endTurn() {
+function swapTurn() {
+    // callbacks must remove themselves
+    off("timer-end-turn", swapTurn);
     inMenuTransition = 0;
     activePlayer = 1-activePlayer;
+    if (players[activePlayer].health < 1) {
+        activePlayer = 1-activePlayer;
+    }
     cameraX = players[activePlayer].x;
-    // callbacks must remove themselves
-    kontra.off("timer-end-turn", endTurn);
+    
 }
 
-function endTurnMenu() {
+function endTurn() {
     inMenuTransition = 1;
-    setTimer("end-turn",60,endTurn);
+    setTimer("end-turn",60,swapTurn);
 }
-const etb = document.querySelector(".btn-end-turn");
-etb.onclick = function() {endTurnMenu();}
+
+function endMenu() {
+    inMenuTransition = 1;
+    activePlayer = 1-activePlayer;
+    if (players[activePlayer].health < 1) {
+        activePlayer = 1-activePlayer;
+    }
+    currentMenu = 3;
+    cameraX = players[activePlayer].x - 500;
+    zzfx(...win_sfx);
+}
+
+function endGame() {
+    inMenuTransition = 1;
+    setTimer("end-turn",61,endMenu);
+}
 
 const uf = document.querySelector(".ui-fire");
 const ub = document.querySelector(".ui-build");
 const gc = document.querySelector(".game-controls");
+const es = document.querySelector(".end-screen");
+
+const etb = document.querySelector(".end-turn");
+etb.onclick = function() {endTurn();}
+
+function startGame() {
+    activePlayer = 0;
+    inMenuTransition = 0;
+    currentMenu = 0;
+    sprites = [];
+    generateTerrain(Date.now() & 0xFFFFFFFF);
+
+    es.classList.add("none");
+    es.classList.add("hidden");
+    players.map(player => {
+        player.ttl = 0;
+    });
+    players = players.filter(player => player.isAlive());
+    spawnPlayer(300, 200);
+    spawnPlayer(1700, 200);
+    unicorn_image.onload();
+    unicorn_shift_image.onload();
+}
+const re = document.querySelector(".end-replay");
+re.onclick = function() {startGame();}
 
 generateTerrain(Date.now() & 0xFFFFFFFF);
-//generateTerrain(306379322);
 let loop = GameLoop({  // create the main game loop
   update() { // update the game state
     timers.map(timer => timer.update()); // DON'T FORGET TO DO TIMECARDS!
@@ -428,11 +575,17 @@ let loop = GameLoop({  // create the main game loop
     sprites = sprites.filter(sprite => sprite.isAlive());
     if (!gameType > 0 || inMenuTransition > 0) {
         gc.classList.add("none");
-        gc.classList.add("hidden");
-        return;
+        if (currentMenu == 3) { // end game
+            es.classList.remove("none");
+            es.classList.remove("hidden");
+            let p = es.querySelector("p");
+            p.innerHTML = `Player ${activePlayer+1} wins`;
+        } else {
+            es.classList.add("none");
+            es.classList.add("hidden");
+        }
     } else {
         gc.classList.remove("none");
-        gc.classList.remove("hidden");
     }
     uf.classList.add("none");
     ub.classList.add("none");
@@ -441,7 +594,7 @@ let loop = GameLoop({  // create the main game loop
         case 1: { uf.classList.remove("none"); 
             uf.innerHTML = `Angle: ${currentAngle} Power: ${currentPower}`; break; }
         case 2: { ub.classList.remove("none"); 
-            ub.innerHTML = `🪵: ${currentWood}<br/>🪨: ${currentMetal}`;
+            ub.innerHTML = `🪵: ${currentWood}\t🪨: ${currentMetal}`;
         }
         default: break;
     }
@@ -455,10 +608,13 @@ let loop = GameLoop({  // create the main game loop
         menu_audio.loop = true;
     }
 
-    if (currentMenu > 0) {
+    if (currentMenu > 0 && inMenuTransition == 0) {
         cameraX += 5 * (keyPressed('e') - keyPressed('q'));
     } else {
-        cameraX = players[activePlayer].x - 500;
+        if (currentMenu == 0 && inMenuTransition == 1) {
+            let bullets = sprites.filter(sprite => sprite.type == "bullet");
+            if (bullets[0]) {cameraX = bullets[0].x - 500;}
+        } else { cameraX = players[activePlayer].x - 500; }
     }
     cameraX = Math.min(canvas.width,Math.max(0, cameraX));
   },

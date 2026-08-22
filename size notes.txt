@@ -1,9 +1,4 @@
-kontra (before tree-shaking) - 5561
-all js - 3629
-kontra + rest - 7923
+kontra (before tree-shaking) - ~6.5k zipped
 html (at present) - 724
 images - 584
-9231/13312 after roadroller
-
-+ another song - 200-500
-= ~3.5k for rest of scripts / classes
+7953/13312 after rollup, roadroller, zip, advzip

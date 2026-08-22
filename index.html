@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <title>Horns of War</title>
-    <script src="kontra.min.js"></script>
-    <script src="https://play.js13kgames.com/2026/online/partysocket.js"></script>
+    <script type="module" src="zzfxm.min.js" ></script>
+    <script type="module" src="kontra.min.mjs"></script>
+    <script type="module" src="https://play.js13kgames.com/2026/online/partysocket.js"></script>
 </head>
 <body>
     <style>
@@ -14,7 +15,7 @@
         }
         canvas {
         border: 1px solid white;
-        background: linear-gradient(rgb(118, 220, 243), rgb(18, 161, 217));
+        background: linear-gradient(#76dcf3, #12a1d9);
         padding-left: 0;
         padding-right: 0;
         margin-left: auto;
@@ -45,21 +46,22 @@
         margin-right: auto;
         }
 
+        button {
+        padding: 8px 16px;
+        border-radius: 2px;
+        border: none;
+        font-size: 30px;
+        letter-spacing: 1px;
+        color: white;
+        border: 2px solid #2e2e2e;
+        }
+
         .game-controls {
         position: absolute;
         top: 520px;
         left: 0px;
         width: 1000px;
         height: 80px;
-            button {
-            padding: 8px 16px;
-            border-radius: 2px;
-            border: none;
-            font-size: 30px;
-            letter-spacing: 1px;
-            color: white;
-            border: 2px solid #2e2e2e;
-            }
             p {
             position: absolute;
             vertical-align: text-top;
@@ -73,38 +75,86 @@
             }
         }
         
-        .btn-fire {
+        .fire {
         position: absolute;
         top: 0px;
         left: 50px;
         background-color: #d23737;
         }
 
-        .btn-build {
+        .build {
         position: absolute;
         top: 0px;
         left: 190px;
         background-color: #3737d2;
         }
 
-        .btn-end-turn {
+        .end-turn {
         position: absolute;
         top: 0px;
         left: 350px;
         background-color: #37d237;
+        }
+
+        .end-screen {
+            position: absolute;
+            height: 100%;
+            width: 100%;
+            .end-bg {
+            position: absolute;
+            top: 0px;
+            left: 0px;
+            height: 100%;
+            width: 100%;
+            background: #111;
+            opacity: 0.4;
+            }
+            p {
+                color: white;
+                -webkit-text-stroke: 3px #111;
+                margin: 0;
+                font-size: 80px;
+                text-align: center;
+                position: relative;
+                float: left;
+                position: absolute;
+                top: 25%;
+                left: 50%;
+                transform: translateX(-50%) translateY(-50%);
+            }
+            div {
+                position: absolute;
+                top: 55%;
+                left: 50%;
+                transform: translateX(-50%) translateY(-50%);
+                .end-quit {
+                    margin-right:100px;
+                }
+            }
+            button {
+                background-color: #2e2e2e;
+            }
         }
         
     </style>
     <canvas width="1000" height="600"></canvas>
     <section class="game-ui">
     <section class="game-controls">
-        <button class="btn-fire">Fire</button>
-        <button class="btn-build">Build</button>
-        <button class="btn-end-turn">End Turn</button>
+        <button class="fire">Fire</button>
+        <button class="build">Build</button>
+        <button class="end-turn">End Turn</button>
         <p class="ui-fire"></p>
         <p class="ui-build"></p>
     </section>
+    <section class="end-screen none hidden">
+        <section class="end-bg"></section>
+        <p></p>
+        <div>
+        <button class="end-quit">Exit</button>
+        <button class="end-replay">Replay</button>
+        </div>
     </section>
-    <script src="src/main.js"></script>
+    </section>
+    <script type="module" src="src/main.js"></script>
 </body>
 </html>

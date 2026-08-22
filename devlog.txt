@@ -32,9 +32,17 @@ aug 20th
 - found a good enough unicorn sprite: https://opengameart.org/content/running-unicorn-0 - modded it for a proper set of animations, and made a second sprite off of it for player 2
 
 aug 21st
-- worked with timer logic to make turns actually work
+- created timer logic to make turns actually work and animate correctly
 - added health and started bullet collision
 - to do before rounds can finish:
-damage, platform pickups, placing platforms, system for weapon pickups(if i'm going there?)
 bullet tracking mid-air, aiming previews
+damage, platform pickups, placing platforms, system for weapon pickups(if i'm going there?)
 turn timer, wind (as a bonus - just set ddx on bullet spawn)
+
+aug 22nd
+- camera now tracks bullets in flight
+- shot preview
+- damage, death, and an end of game menu
+- integrated sound effects
+- rewrote the game to use modules - helps prep for possible online integration + saves 2k zipped
+- game can be restarted after victory
