@@ -21,7 +21,7 @@ aug 18th
 - finished terrain generation / rendering
 - got player movement, plus collision with the floor
 - started work on music - main menu first
-- taking notes design-wise from https://github.com/js13kGames/back-to-that-platform-i-was-on-before-jumping/blob/master/index.html
+- taking notes design-wise from https://github.com/js13kGames/back-to-that-platform-i-was-on-before-jumping/
 
 aug 19th
 - break for burnout
@@ -30,3 +30,11 @@ aug 19th
 aug 20th
 - worked on ingame UI and turn logic
 - found a good enough unicorn sprite: https://opengameart.org/content/running-unicorn-0 - modded it for a proper set of animations, and made a second sprite off of it for player 2
+
+aug 21st
+- worked with timer logic to make turns actually work
+- added health and started bullet collision
+- to do before rounds can finish:
+damage, platform pickups, placing platforms, system for weapon pickups(if i'm going there?)
+bullet tracking mid-air, aiming previews
+turn timer, wind (as a bonus - just set ddx on bullet spawn)

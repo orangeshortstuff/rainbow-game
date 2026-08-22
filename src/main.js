@@ -1,14 +1,30 @@
-let { init, Sprite, SpriteSheet, GameLoop, pointerPressed, pointer, keyPressed } = kontra
-let { canvas, context } = init();
-//let mySongData = zzfxM(...menu_theme);
+//! ZzFXM (v2.0.3) | (C) Keith Clark | MIT | https://github.com/keithclark/ZzFXM
+zzfx=(...z)=>zzfxP(zzfxG(...z)),zzfxP=(...z)=>{let t=zzfxX.createBufferSource(),f=zzfxX.createBuffer(z.length,z[0].length,zzfxR);return z.map((z,t)=>f.getChannelData(t).set(z)),t.buffer=f,t.connect(zzfxX.destination),t.start(),t},zzfxG=(z=1,t=.05,f=220,e=0,x=0,a=.1,n=0,h=1,r=0,M=0,R=0,o=0,i=0,s=0,l=0,u=0,g=0,d=1,c=0,m=0)=>{let b,w,P=2*Math.PI,X=r*=500*P/zzfxR**2,C=(0<l?1:-1)*P/4,G=f*=(1+2*t*Math.random()-t)*P/zzfxR,p=[],A=0,B=0,I=0,V=1,k=0,D=0,S=0;for(e=99+zzfxR*e,c*=zzfxR,x*=zzfxR,a*=zzfxR,g*=zzfxR,M*=500*P/zzfxR**3,l*=P/zzfxR,R*=P/zzfxR,o*=zzfxR,i=zzfxR*i|0,w=e+c+x+a+g|0;I<w;p[I++]=S)++D%(100*u|0)||(S=n?1<n?2<n?3<n?Math.sin((A%P)**3):Math.max(Math.min(Math.tan(A),1),-1):1-(2*A/P%2+2)%2:1-4*Math.abs(Math.round(A/P)-A/P):Math.sin(A),S=(i?1-m+m*Math.sin(2*Math.PI*I/i):1)*(0<S?1:-1)*Math.abs(S)**h*z*zzfxV*(I<e?I/e:I<e+c?1-(I-e)/c*(1-d):I<e+c+x?d:I<w-g?(w-I-g)/a*d:0),S=g?S/2+(g>I?0:(I<w-g?1:(w-I)/g)*p[I-g|0]/2):S),b=(f+=r+=M)*Math.sin(B*l-C),A+=b-b*s*(1-1e9*(Math.sin(I)+1)%2),B+=b-b*s*(1-1e9*(Math.sin(I)**2+1)%2),V&&++V>o&&(f+=R,G+=R,V=0),!i||++k%i||(f=G,r=X,V=V||1);return p},zzfxV=.3,zzfxR=44100,zzfxX=new(window.AudioContext||webkitAudioContext),zzfxM=(z,t,f,e=125)=>{let x,a,n,h,r,M,R,o,i,s,l,u,g,d,c,m=0,b=[],w=[],P=[],X=0,C=0,G=1,p={},A=zzfxR/e*60>>2;for(;G;X++)b=[G=o=l=g=0],f.map((e,l)=>{for(R=t[e][X]||[0,0,0],G|=!!t[e][X],c=g+(t[e][0].length-2-!o)*A,d=l==f.length-1,a=2,h=g;a<R.length+d;o=++a){for(r=R[a],i=a==R.length+d-1&&d||s!=(R[0]||0)|r|0,n=0;n<A&&o;n++>A-99&&i?u+=(u<1)/99:0)M=(1-u)*b[m++]/2||0,w[h]=(w[h]||0)-M*C+M,P[h]=(P[h++]||0)+M*C+M;r&&(u=r%1,C=R[1]||0,(r|=0)&&(b=p[[s=R[m=0]||0,r]]=p[[s,r]]||(x=[...z[s]],x[2]*=2**((r-12)/12),r>0?zzfxG(...x):[])))}g=c});return[w,P]};
+const menu_theme = [[[,0,254,,,.25],[,0,440,,,,,,,,,,,80,,,,.75],[.6,0,64,,,.32,2,.3]],[[[,,9,,,,9,,,,,,9,,,,7,,,,7,,,,,,7,,,,7,,,,],[,,13,,,,13,,,,,,13,,,,12,,,,12,,,,,,12,,,,12,,,,],[,,16,,,,16,,,,,,16,,,,14,,,,14,,,,,,14,,,,14,,,,],[2,,9,,,,16,,,,16,,9,,,,7,,,,,,,,,,,,5,,7,,8,,],[1,,,,,,1,,1,,,,,,1,,,,,,,,1,,1,,,,1,,,,1,,]],[[,,9,,,,9,,,,,,9,,,,7,,,,,,7,,,,,,,,,,,,],[,,13,,,,13,,,,,,13,,,,12,,,,,,12,,,,,,,,,,,,],[,,16,,,,16,,,,,,16,,,,14,,,,,,14,,,,,,,,,,,,],[2,,9,,,,16,,,,16,,9,,,,7,,,,,,19,,,,19,,18,,14,,15,,],[1,,,,,,1,,1,,,,,,1,,,,,,,,1,,1,,,,1,,1,,1,,]],[[,,9,,,,9,,,,,,9,,,,7,,,,7,,,,,,7,,,,7,,,,],[,,13,,,,13,,,,,,13,,,,12,,,,12,,,,,,12,,,,12,,,,],[,,16,,,,16,,,,,,16,,,,14,,,,14,,,,,,14,,,,14,,,,],[2,,16,,9,,,,,,,,9,,14,,7,,,,7,,,,,,7,,,,7,,,,],[1,,,,,,1,,1,,,,,,1,,,,,,,,1,,1,,,,1,,,,1,,]],[[,,5,,,,5,,,,,,5,,,,7,,,,7,,,,,,7,,,,7,,,,],[,,7,,,,7,,,,,,7,,,,5,,,,12,,,,,,12,,,,12,,,,],[,,12,,,,12,,,,,,12,,,,12,,,,14,,,,,,14,,,,14,,,,],[2,,5,,,,5,,,,2.5,,5,,,,5,,,,,,4,,,,4,,,,2,,,,],[1,,,,,,1,,1,,,,,,1,,,,,,,,1,,1,,,,1,,1,,1,,]],[[1,,,,,,1,,1,,,,,,1,,,,,,,,1,,1,,,,1,,,,1,,]],[[1,,,,,,1,,1,,,,,,1,,1,,,,,,1,,1,,,,1,,1,,1,,]],[[1,,,,,,1,,1,,,,1,,1.49,,1,,,,,,,,,,,,,,,,,,]]],[0,1,2,3,0,1,2,3,4,5,6],155,{"title":"menu theme","instruments":["a","b","c"],"patterns":["0","1","2","3","4","5","6"]}];
+let menu_data = zzfxM(...menu_theme);
+let menu_audio = zzfxP(...menu_data);
+menu_audio.loop = true;
+menu_audio.stop();
 
+let { init, Sprite, SpriteSheet, GameLoop, pointerPressed, pointer, keyPressed, emit } = kontra
+let { canvas, context } = init();
+
+// left, right, jump, camera left, camera right, power up, power down
+let controls = [
+    ["a","d","w","q","e", "z", "x"],
+    ["left","right","up"]
+];
 let sprites = [];
 let blocks = [];
 let heightmap = [];
+let players = [];
+let activePlayer = 0;
 let cameraX = 0;
 let currentMenu = 0;
+let inMenuTransition = 0;
 let gameType = 2; // 1 for vs bot, 2 for local multiplayer, 3 for online, 0 for the lobby
 let currentWood = 100, currentMetal = 100; // pickups are +3
+let currentAngle = 45, currentPower = 50;
 const terrainLayers = 6;
 const baseTerrainPoints = 8;
 kontra.initKeys();
@@ -24,6 +40,28 @@ function xorshift32(a) {
     a ^= a << 13; a ^= a >>> 17; a ^= a << 5;
     return (a >>> 0);
 }
+
+// timers
+let timers = [];
+function getTimer(name) {
+    return timers.filter(timer => timer.name == name);
+};
+function setTimer(name, time, callback) {
+    let timer = Sprite({
+        width: 0,
+        ttl: time,
+        name: name,
+        event: `timer-${name}`,
+        update() {
+            this.advance();
+            if (!this.isAlive()) {
+                emit(this.event);
+            }
+        }
+    });
+    kontra.on(`timer-${name}`, callback);
+    timers.push(timer);
+};
 
 function generateTerrain(seed) {
     blocks = [];
@@ -121,13 +159,33 @@ function getWorldFloor(x, width, height) {
     return worldFloor;
 }
 
-function SpawnBullet(p_x,p_y,v_x,v_y) {
+// covers from frames 38-67. deletes on frame 105
+function transitionCover() {
+let cover = Sprite({
+    x:0,
+    y:-600,
+    width:1000,
+    height:650,
+    color: "black",
+    dy: 23,
+    ddy: -0.44,
+    update() {
+        this.advance();
+        if (this.y < -601) {
+            this.ttl = 0;
+        }
+    }
+});
+sprites.push(cover);
+}
+
+function spawnBullet(p_x,p_y,v_x,v_y) {
 let bullet = Sprite({
     x: p_x,
     y: p_y,
     dx: v_x,
     dy: v_y,
-    ddy: 0.05,
+    ddy: 0.15,
     width: 20,
     height: 20,
     colour:"white",
@@ -138,7 +196,7 @@ let bullet = Sprite({
         ctx.strokeStyle = 'black';
         ctx.fillStyle = 'white';
         ctx.save();
-        ctx.translate(this.x, this.y);
+        ctx.translate(this.x-cameraX, this.y);
         ctx.rotate(this.rotation);
         ctx.beginPath();
         ctx.moveTo(-3, -5);
@@ -152,98 +210,128 @@ let bullet = Sprite({
     update() {
         this.rotation=Math.atan2(this.dy, this.dx);
         this.advance();
-        if (this.y > canvas.height) {
+        if (this.y > getWorldFloor(this.x, this.width, this.height)) {
             this.ttl = 0;
         }
-        if (this.x > canvas.width || this.x < 0) {
+        if (this.x > canvas.width+cameraX || this.x < 0) {
             this.ttl = 0;
         }
+        
+        // player collisions
     }
 });
 sprites.push(bullet);
 }
 
-let player = Sprite({
-    x: 290,
-    y: 180,
-    dx: 3,
-    dy: 0,
-    ddy: 0,
-    width: 32,
-    height: 32,
-    color: 'blue',
-    grounded: true,
-    update() {
-        // move the sprite with the keyboard
-        if (currentMenu == 0) {
-            if (keyPressed('left') || keyPressed('a')) {
-                this.x -= this.dx;
-                this._fx = -1;
-                if (this.currentAnimation != this.animations["jump"] && this.currentAnimation != this.animations["fall"]) {
-                    this.playAnimation("walk");
+function spawnPlayer(x,y) {
+    let player = Sprite({
+        x: x,
+        y: y,
+        dx: 3,
+        dy: 0,
+        ddy: 0,
+        width: 32,
+        height: 32,
+        id: players.length,
+        health: 100,
+        grounded: true,
+        update() {
+            if (gameType == 0 || inMenuTransition > 0) { return; }
+            // move the sprite with the keyboard
+            if (this.id == activePlayer && currentMenu == 0) {
+                if (keyPressed('left') || keyPressed('a')) {
+                    this.x -= this.dx;
+                    this._fx = -1;
+                    if (this.currentAnimation != this.animations["jump"] && this.currentAnimation != this.animations["fall"]) {
+                        this.playAnimation("walk");
+                    }
+                }
+                else if (keyPressed('right') || keyPressed('d')) {
+                    this.x += this.dx;
+                    this._fx = 1;
+                    if (this.currentAnimation != this.animations["jump"] && this.currentAnimation != this.animations["fall"]) {
+                        this.playAnimation("walk");
+                    }
+                } else {
+                    this.playAnimation("idle");
+                }
+                // reset the sprites position when it reaches the edge of the game
+                if (this.x > canvas.width*2 - this.width) {
+                    this.x = canvas.width*2 - this.width;
+                }
+                else if (this.x < 0) {
+                    this.x = 0;
                 }
             }
-            else if (keyPressed('right') || keyPressed('d')) {
-                this.x += this.dx;
-                this._fx = 1;
-                if (this.currentAnimation != this.animations["jump"] && this.currentAnimation != this.animations["fall"]) {
-                    this.playAnimation("walk");
+            let prevX = this.x;
+            this.advance();
+            this.x = prevX;
+            // collisions with ground
+            let worldFloor = getWorldFloor(this.x, this.width, this.height);
+            if (worldFloor > this.y) {
+                this.grounded = false;
+                this.ddy = 0.15;
+                if (this.jumped || (this.dy > 1.5)) {
+                    if (this.dy < 0) {
+                        this.playAnimation("jump");
+                    } else {
+                        this.playAnimation("fall");
+                    }
                 }
             } else {
-                this.playAnimation("idle");
-            }
-            // reset the sprites position when it reaches the edge of the game
-            if (this.x > canvas.width*2 - this.width) {
-                this.x = canvas.width*2 - this.width;
-            }
-            else if (this.x < 0) {
-                this.x = 0;
-            }
-        }
-        let prevX = this.x;
-        this.advance();
-        this.x = prevX;
-        // collisions with ground
-        let worldFloor = getWorldFloor(this.x, this.width, this.height);
-        if (worldFloor > this.y) {
-            this.grounded = false;
-            this.ddy = 0.15;
-            if (this.jumped || (this.dy > 1.5)) {
-                if (this.dy < 0) {
-                    this.playAnimation("jump");
-                } else {
-                    this.playAnimation("fall");
+                if (this.currentAnimation == this.animations["jump"] || this.currentAnimation == this.animations["fall"]) {
+                    this.playAnimation("idle");
+                }
+                this.grounded = true;
+                this.jumped = false;
+                this.ddy = 0;
+                this.dy = 0;
+                this.y = worldFloor;
+                if ((keyPressed("up")||keyPressed("w"))  && this.id == activePlayer && currentMenu == 0) { // prevent jumps if building
+                    this.dy = -5;
+                    this.y -= 5;
+                    this.jumped = true;
                 }
             }
-        } else {
-            if (this.currentAnimation == this.animations["jump"] || this.currentAnimation == this.animations["fall"]) {
-                this.playAnimation("idle");
+            if (this.id == activePlayer && currentMenu == 1 ) {
+                currentAngle += (keyPressed("up") - keyPressed("down"));
+                currentAngle = Math.max(0,Math.min(90,currentAngle));
+                currentPower += (keyPressed("right") - keyPressed("left"));
+                currentPower = Math.max(0,Math.min(100,currentPower));
+                if (keyPressed('z')) {
+                    let magnitude = currentPower * 0.15;
+                    spawnBullet(this.x + 15*(1+this._fx),this.y,
+                                magnitude*Math.cos((Math.PI / 180) * currentAngle)*this._fx,
+                                magnitude*Math.sin((Math.PI / 180) * currentAngle)*-1);
+                    endTurnMenu();
+                    currentMenu = 0;
+                    console.log("fire");
+                }
             }
-            this.grounded = true;
-            this.jumped = false;
-            this.ddy = 0;
-            this.dy = 0;
-            this.y = worldFloor;
-            if ((keyPressed("up")||keyPressed("w")) && currentMenu == 0) { // prevent jumps if building
-                this.dy = -5;
-                this.y -= 5;
-                this.jumped = true;
-            }
-        }
-    },
-    
-    render() {
-        this.x -= cameraX;
-        // get an image for the spritesheet - render the horn separately
-        let c = this.context;
-        c.save();
-        this.draw();
-        c.restore();
+            
+        },
         
-        this.x += cameraX;
-    }
-});
-sprites.push(player);
+        render() {
+            if (gameType == 0) { return; }
+            this.x -= cameraX;
+            // get an image for the spritesheet - render the horn separately
+            let c = this.context;
+            c.save();
+            this.draw();
+            // hp text
+            c.font = "20px system-ui";
+            c.fillStyle = `lch(${55+(this.health/3)}% 100 ${this.health+37.97})`;
+            let text_size = c.measureText(`${this.health}`);
+            c.fillText(`${this.health}`, (this.x)-((text_size.width-this.width)/2), this.y-0);
+            c.restore();
+            this.x += cameraX;
+        }
+    });
+    players.push(player);
+};
+
+spawnPlayer(300, 200);
+spawnPlayer(1700, 200);
 
 let unicorn_anims = {
     idle: {
@@ -274,8 +362,8 @@ unicorn_image.onload = function() {
         frameMargin: 0,
     });
     unicorn_sheet.createAnimations(unicorn_anims);
-    player.animations = unicorn_sheet.animations;
-    player.playAnimation('idle');
+    players[0].animations = unicorn_sheet.animations;
+    players[0].playAnimation('idle');
 };
 
 let unicorn_shift_image = new Image();
@@ -288,6 +376,8 @@ unicorn_shift_image.onload = function() {
         frameMargin: 0,
     });
     unicorn_shift_sheet.createAnimations(unicorn_anims);
+    players[1].animations = unicorn_shift_sheet.animations;
+    players[1].playAnimation('idle');
 }
 
 // prevent default key behavior
@@ -296,7 +386,6 @@ kontra.bindKeys(['up', 'down', 'left', 'right'], function(e) {
 });
 
 // button callbacks
-
 function fireMenu() {
     currentMenu = 1;
 }
@@ -310,10 +399,19 @@ const bb = document.querySelector(".btn-build");
 bb.onclick = function() {buildMenu();}
 
 function endTurn() {
-    alert("END TURN");
+    inMenuTransition = 0;
+    activePlayer = 1-activePlayer;
+    cameraX = players[activePlayer].x;
+    // callbacks must remove themselves
+    kontra.off("timer-end-turn", endTurn);
+}
+
+function endTurnMenu() {
+    inMenuTransition = 1;
+    setTimer("end-turn",60,endTurn);
 }
 const etb = document.querySelector(".btn-end-turn");
-etb.onclick = function() {endTurn();}
+etb.onclick = function() {endTurnMenu();}
 
 const uf = document.querySelector(".ui-fire");
 const ub = document.querySelector(".ui-build");
@@ -323,7 +421,12 @@ generateTerrain(Date.now() & 0xFFFFFFFF);
 //generateTerrain(306379322);
 let loop = GameLoop({  // create the main game loop
   update() { // update the game state
-    if (!gameType > 0) {
+    timers.map(timer => timer.update()); // DON'T FORGET TO DO TIMECARDS!
+    timers = timers.filter(timer => timer.isAlive()); // TIMECAAAAAAAARDS
+    sprites.map(sprite => sprite.update());
+    players.map(players => players.update());
+    sprites = sprites.filter(sprite => sprite.isAlive());
+    if (!gameType > 0 || inMenuTransition > 0) {
         gc.classList.add("none");
         gc.classList.add("hidden");
         return;
@@ -335,35 +438,35 @@ let loop = GameLoop({  // create the main game loop
     ub.classList.add("none");
     // update current UI
     switch (currentMenu) {
-        case 1: { uf.classList.remove("none"); break; }
+        case 1: { uf.classList.remove("none"); 
+            uf.innerHTML = `Angle: ${currentAngle} Power: ${currentPower}`; break; }
         case 2: { ub.classList.remove("none"); 
             ub.innerHTML = `🪵: ${currentWood}<br/>🪨: ${currentMetal}`;
         }
         default: break;
     }
     
-    sprites.map(sprite => {
-      sprite.update();
-    });
-    sprites = sprites.filter(sprite => sprite.isAlive());
-    if (keyPressed('space')){
-        SpawnBullet(player.x, player.y, Math.random() * 4 -2,(Math.random()*3+2)*-1);
-    }
     if (keyPressed('c')){
         currentMenu = 0;
     }
-    if (keyPressed('q')){
-        cameraX -=5;
+    if (keyPressed('p')){
+        menu_audio.stop();
+        menu_audio = zzfxP(...menu_data);
+        menu_audio.loop = true;
     }
-    if (keyPressed('e')){
-        cameraX +=5;
+
+    if (currentMenu > 0) {
+        cameraX += 5 * (keyPressed('e') - keyPressed('q'));
+    } else {
+        cameraX = players[activePlayer].x - 500;
     }
     cameraX = Math.min(canvas.width,Math.max(0, cameraX));
   },
   render() { // render the game state
     if (!gameType > 0) {return;}
-    sprites.map(sprite => sprite.render());
     blocks.map(block => block.render());
+    players.map(players => players.render());
+    sprites.map(sprite => sprite.render());
   },
 });
 
