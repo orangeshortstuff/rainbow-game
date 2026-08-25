@@ -1,24 +1,49 @@
 import {zzfx, zzfxP, zzfxG, zzfxV, zzfxR, zzfxX, zzfxM} from  "../zzfxm.min.js";
 const menu_theme = [[[,0,254,,,.25],[,0,440,,,,,,,,,,,80,,,,.75],[.6,0,64,,,.32,2,.3]],[[[,,9,,,,9,,,,,,9,,,,7,,,,7,,,,,,7,,,,7,,,,],[,,13,,,,13,,,,,,13,,,,12,,,,12,,,,,,12,,,,12,,,,],[,,16,,,,16,,,,,,16,,,,14,,,,14,,,,,,14,,,,14,,,,],[2,,9,,,,16,,,,16,,9,,,,7,,,,,,,,,,,,5,,7,,8,,],[1,,,,,,1,,1,,,,,,1,,,,,,,,1,,1,,,,1,,,,1,,]],[[,,9,,,,9,,,,,,9,,,,7,,,,,,7,,,,,,,,,,,,],[,,13,,,,13,,,,,,13,,,,12,,,,,,12,,,,,,,,,,,,],[,,16,,,,16,,,,,,16,,,,14,,,,,,14,,,,,,,,,,,,],[2,,9,,,,16,,,,16,,9,,,,7,,,,,,19,,,,19,,18,,14,,15,,],[1,,,,,,1,,1,,,,,,1,,,,,,,,1,,1,,,,1,,1,,1,,]],[[,,9,,,,9,,,,,,9,,,,7,,,,7,,,,,,7,,,,7,,,,],[,,13,,,,13,,,,,,13,,,,12,,,,12,,,,,,12,,,,12,,,,],[,,16,,,,16,,,,,,16,,,,14,,,,14,,,,,,14,,,,14,,,,],[2,,16,,9,,,,,,,,9,,14,,7,,,,7,,,,,,7,,,,7,,,,],[1,,,,,,1,,1,,,,,,1,,,,,,,,1,,1,,,,1,,,,1,,]],[[,,5,,,,5,,,,,,5,,,,7,,,,7,,,,,,7,,,,7,,,,],[,,7,,,,7,,,,,,7,,,,5,,,,12,,,,,,12,,,,12,,,,],[,,12,,,,12,,,,,,12,,,,12,,,,14,,,,,,14,,,,14,,,,],[2,,5,,,,5,,,,2.5,,5,,,,5,,,,,,4,,,,4,,,,2,,,,],[1,,,,,,1,,1,,,,,,1,,,,,,,,1,,1,,,,1,,1,,1,,]],[[1,,,,,,1,,1,,,,,,1,,,,,,,,1,,1,,,,1,,,,1,,]],[[1,,,,,,1,,1,,,,,,1,,1,,,,,,1,,1,,,,1,,1,,1,,]],[[1,,,,,,1,,1,,,,1,,1.49,,1,,,,,,,,,,,,,,,,,,]]],[0,1,2,3,0,1,2,3,4,5,6],155,{"title":"menu theme","instruments":["a","b","c"],"patterns":["0","1","2","3","4","5","6"]}];
 let menu_data = zzfxM(...menu_theme);
-let menu_audio = zzfxP(...menu_data);
-menu_audio.loop = true;
-menu_audio.stop();
+let current_audio = zzfxP(...menu_data);
+current_audio.loop = true;
+current_audio.stop();
 
 let fire_sfx = [,0,464,.01,.07,.08,2,2.5,-4,3,,,,,,,,.53,.09];
 let explode_sfx = [2,,33,.09,.15,.41,4,.2,-6,-1,,,,.1,,.6,.23,.38,.18];
+let spawn_sfx = [1.1,0,106,.01,.17,.33,,3.9,-7,,,,,.1,,.7,,.47,.07];
 let pickup_sfx = [1.8,0,321,.03,.06,.26,1,2.4,,,239,.08,,,,,.1,.67,.01];
 let jump_sfx = [.9,,395,.01,,,,3.5,11,65,,,,,,,,.72,.02,,-1499];
 let win_sfx = [,0,325,.04,.2,.71,1,3.5,,158,350,.17,.03,,,,.25,.96,.26,.23,737];
 
 import { init, initKeys, Sprite, SpriteSheet, GameLoop, keyPressed, on, off, emit, bindKeys } from "../kontra.min.mjs"
 
-let { canvas, context } = init();
+let { canvas } = init();
+/*
+const ws = new WebSocket('wss://relay.js13kgames.com/horns-of-war');
+ws.onopen = _ => {
+  ws.send('hello!')
+}
+ws.onmessage = event => {
+  const msg = event.data
+  switch (msg[0]) {
+    case '@':
+      console.log('My ID is:', msg.slice(1))
+      break
 
-// left, right, down, jump, camera left, camera right, fire/place, cancel, select material / weapon
+    case '+':
+      console.log('A client connected, ID:', msg.slice(1))
+      break
+
+    case '-':
+      console.log('A client disconnected, ID:', msg.slice(1))
+      break
+
+    default:
+      console.log('Message:', msg)
+  }
+} */
+
+// left, right, down, jump, camera left/camera right (also select material / weapon), fire/place, cancel
 let controls = [
-    ["a","d","s","w","q","e","z","c","r","t"],
-    ["left","right","down","up"]
+    ["a","d","s","w","q","e","z","c"],
+    ["left","right","down","up", "k","l","n","m"]
 ];
 let sprites = [];
 let blocks = [];
@@ -28,9 +53,11 @@ let activePlayer = 0;
 let cameraX = 0;
 let currentMenu = 0;
 let inMenuTransition = 0;
-let gameType = 2; // 1 for vs bot, 2 for local multiplayer, 3 for online, 0 for the lobby
-let currentWood = 100, currentMetal = 100; // pickups are +3
-let currentAngle = 45, currentPower = 50;
+let gameType = 0; // 1 for vs bot, 2 for local multiplayer, 3 for online, 0 for the lobby
+let seed = 0;
+let windSpeed = 0;
+let pressedWeaponLeft = 0, pressedWeaponRight = 0; // kontra 6 doesn't have onKey callbacks, so deal with weapon selection
+
 const terrainLayers = 6;
 const baseTerrainPoints = 8;
 initKeys();
@@ -48,9 +75,18 @@ function xorshift32(a) {
 
 // timers
 let timers = [];
-function getTimer(name) {
+function getTimers(name) {
     return timers.filter(timer => timer.name == name);
 };
+
+function removeTimers(name) {
+    if (getTimers(name)) {
+        timers.map(timer => {
+            off(`timer-${name}`, timer.callback);
+            timer.ttl = Infinity; // sentinel for "should be removed without calling"
+        });
+    }
+}
 function setTimer(name, time, callback) {
     let timer = Sprite({
         width: 0,
@@ -191,9 +227,9 @@ function makePreviewPoint(i) {
         color: `rgba(255, 255, 255, ${1-(i*0.03)})`,
         update() {
             let a = players[activePlayer];
-            let magnitude = currentPower * 0.18;
-            let v_x = magnitude*Math.cos((Math.PI / 180) * currentAngle)*a._fx;
-            let v_y = magnitude*Math.sin((Math.PI / 180) * currentAngle)*-1;
+            let magnitude = a.power * 0.18;
+            let v_x = magnitude*Math.cos((Math.PI / 180) * a.angle)*a._fx;
+            let v_y = magnitude*Math.sin((Math.PI / 180) * a.angle)*-1;
             let t = (8-this.radius)*6;
             this.x = a.x+ 8.5*(3*a._fx+1)+(t*v_x);
             this.y = a.y+(t*v_y+(t*t*0.075));
@@ -212,18 +248,17 @@ function makePreviewPoint(i) {
     });
     sprites.push(preview);
 }
-for(let i=0; i<10; i++) {
-    makePreviewPoint(i);
-}
 
 function makeExplosionParticle(x,y) {
+    let theta = Math.random()*2*Math.PI;
+    let r = 50*Math.sqrt(Math.random());
     let x_particle = Sprite({
-        x: x + 100*(Math.random()-0.5),
-        y: y + 100*(Math.random()-0.5),
+        x: x + r*Math.cos(theta),
+        y: y + r*Math.sin(theta),
         radius: (24*Math.random())+6,
         ttl: (55*Math.random())+5,
         update() {
-            this.color=`lch(${45+(this.ttl/3)}% ${0.33*this.ttl+66} ${27.1+this.ttl})`;
+            this.color=`lch(${45+(this.ttl*0.66)}% ${(0.33*this.ttl)+66} ${27.1+this.ttl})`;
             this.radius *= 0.92;
             if (this.radius < 0) {
                 this.ttl = 0;
@@ -265,17 +300,19 @@ function explosion(x,y) {
 }
 
 function spawnBullet(p_x,p_y,v_x,v_y) {
+removeTimers("turn-timeout");
 let bullet = Sprite({
     x: p_x,
     y: p_y,
     dx: v_x,
     dy: v_y,
+    ddx: windSpeed,
     ddy: 0.15,
     width: 15,
     height: 15,
     colour:"white",
     type:"bullet",
-    rotation: currentAngle,
+    rotation: players[activePlayer].angle,
     render() {
         // draw a right-facing triangle
         let ctx = this.context;
@@ -301,6 +338,13 @@ let bullet = Sprite({
             endTurn();
             return;
         }
+        if (this.y > getWorldFloor(this.x, this.width, this.height)) {
+            this.ttl = 0;
+            endTurn();
+            // explode on floor - calculate splash damage
+            explosion(0.5*this.width+this.x, getWorldFloor(this.x, this.width, this.height));
+            return;
+        }
         // player collisions
         players.map(player => {
             if (this.x + this.width > player.x && this.x < player.x + player.width && 
@@ -312,20 +356,13 @@ let bullet = Sprite({
                 return;
             }
         });
-        
-        if (this.y > getWorldFloor(this.x, this.width, this.height)) {
-            this.ttl = 0;
-            endTurn();
-            // explode on floor - calculate splash damage
-            explosion(0.5*this.width+this.x, getWorldFloor(this.x, this.width, this.height));
-            return;
-        }
     }
 });
 bullet.advance();
 sprites.push(bullet);
 }
 
+// pickups are +3 to ammo / material
 function spawnPlayer(x,y) {
     let player = Sprite({
         x: x,
@@ -338,6 +375,12 @@ function spawnPlayer(x,y) {
         id: players.length,
         health: 100,
         grounded: true,
+        wood: 2,
+        metal: 0,
+        drills: 1,
+        beams: 1,
+        angle: 45,
+        power: 50,
         update() {
             this.health = Math.max(Math.min(this.health,100),0);
             if (gameType == 0 || inMenuTransition > 0) { return; }
@@ -349,12 +392,20 @@ function spawnPlayer(x,y) {
                     if (this.currentAnimation != this.animations["jump"] && this.currentAnimation != this.animations["fall"]) {
                         this.playAnimation("walk");
                     }
+                    let worldFloor = getWorldFloor(this.x, this.width, this.height);
+                    if (this.y - 8 > worldFloor) {
+                        this.x += this.dx;
+                    }
                 }
                 else if (keyPressed('right') || keyPressed('d')) {
                     this.x += this.dx;
                     this._fx = 1;
                     if (this.currentAnimation != this.animations["jump"] && this.currentAnimation != this.animations["fall"]) {
                         this.playAnimation("walk");
+                    }
+                    let worldFloor = getWorldFloor(this.x, this.width, this.height);
+                    if (this.y - 8 > worldFloor) {
+                        this.x -= this.dx;
                     }
                 } else {
                     this.playAnimation("idle");
@@ -395,19 +446,36 @@ function spawnPlayer(x,y) {
                     this.dy = -5;
                     this.y -= 5;
                     this.jumped = true;
+                    zzfx(...jump_sfx);
                 }
             }
+            let pickups = sprites.filter(sprite => sprite.type == "pickup");
+            pickups.map(pickup => {
+                if (this.x + this.width > pickup.x && this.x < pickup.x + pickup.width && 
+                this.y + this.height > pickup.y && this.y < pickup.y + pickup.height) {
+                    pickup.ttl = 0;
+                    zzfx(...pickup_sfx);
+                    switch(pickup.content) {
+                        case 0: { this.health = Math.min(this.health+15, 100); break; }
+                        case 1: { this.wood += 3; break; }
+                        case 2: { this.metal += 3; break; }
+                        case 3: { this.drills += 2; break; }
+                        case 4: { this.beams += 2; break; }
+                        default: break;
+                    }
+                }
+            });
             if (this.id == activePlayer && currentMenu == 1 ) {
-                currentAngle += (keyPressed("up") - keyPressed("down"));
-                currentAngle = Math.max(0,Math.min(90,currentAngle));
-                currentPower += (keyPressed("right") - keyPressed("left"));
-                currentPower = Math.max(0,Math.min(100,currentPower));
+                this.angle += (keyPressed("up") - keyPressed("down"));
+                this.angle = Math.max(0,Math.min(90,this.angle));
+                this.power += (keyPressed("right") - keyPressed("left"));
+                this.power = Math.max(0,Math.min(100,this.power));
                 if (keyPressed('z')) {
-                    let magnitude = currentPower * 0.18;
+                    let magnitude = this.power * 0.18;
                     // -1, -17 / 1, 34
                     spawnBullet(this.x + 8.5*(3*this._fx+1),this.y,
-                                magnitude*Math.cos((Math.PI / 180) * currentAngle)*this._fx,
-                                magnitude*Math.sin((Math.PI / 180) * currentAngle)*-1);
+                                magnitude*Math.cos((Math.PI / 180) * this.angle)*this._fx,
+                                magnitude*Math.sin((Math.PI / 180) * this.angle)*-1);
                     zzfx(...fire_sfx);
                     inMenuTransition = 1;
                     currentMenu = 0;
@@ -442,6 +510,9 @@ function spawnPlayer(x,y) {
 
 spawnPlayer(300, 200);
 spawnPlayer(1700, 200);
+for(let i=0; i<10; i++) {
+    makePreviewPoint(i);
+}
 
 let unicorn_anims = {
     idle: {
@@ -490,6 +561,27 @@ unicorn_shift_image.onload = function() {
     players[1].playAnimation('idle');
 }
 
+let wood = new Image();
+wood.src = 'images/wood.png';
+
+let metal = new Image();
+metal.src = 'images/metal.png';
+
+function spawnPlatform(x,y,type) {
+let platform = Sprite({
+    x:0,
+    width: 24,
+    height: 10,
+    rotation: 0,
+    image: (type == 0 ? wood: metal),
+    });
+};
+
+// prevent default key behavior
+bindKeys(['up', 'down', 'left', 'right'], function(e) {
+    e.preventDefault();
+});
+
 // button callbacks
 function fireMenu() {
     currentMenu = 1;
@@ -512,15 +604,68 @@ function swapTurn() {
         activePlayer = 1-activePlayer;
     }
     cameraX = players[activePlayer].x;
-    
+    // set wind speed
+    seed = xorshift32(seed);
+    windSpeed = Math.pow(((seed / 0x7FFFFFFF)-1),1)*0.05;
+    removeTimers("turn-timeout");
+    setTimer("turn-timeout",1800,endTurn); // start new turn timer
 }
 
 function endTurn() {
+    // callbacks must remove themselves
+    off("timer-turn-timeout", endTurn);
     inMenuTransition = 1;
-    setTimer("end-turn",60,swapTurn);
+    setTimer("spawn-pickup",60,spawnPickup);
+}
+
+function spawnPickup() {
+    // callbacks must remove themselves
+    off("timer-spawn-pickup", spawnPickup);
+    seed = xorshift32(seed);
+    let p_x = 200+(1600*(seed / 0xFFFFFFFF));
+    seed = xorshift32(seed);
+    let content = Math.floor(5*(seed / 0xFFFFFFFF));
+    zzfx(...spawn_sfx);
+    cameraX = p_x - 500;
+    let pickup = Sprite({
+        y:0,
+        x:p_x,
+        width: 16,
+        height: 16,
+        dy: 1,
+        ddy: 0.15,
+        type: "pickup",
+        content: content,
+        update() {
+            this.advance();
+            if(this.y > getWorldFloor(this.x, this.width, this.height)) {
+                this.dy = 0;
+                this.ddy = 0;
+                this.y = getWorldFloor(this.x, this.width, this.height) - 0.5;
+                setTimer("end-turn",60,swapTurn);
+            }
+        },
+        render() {
+            const pickup_icons = ["🩹","🪵","🪨","🔩","🏳️‍⚧️"]; // medkit, wood, metal, drill, beam
+            let c= this.context;
+            c.save();
+            c.translate(this.x-cameraX, this.y);
+            c.fillStyle = "#b4e2f1";
+            c.beginPath();
+            c.arc(0, 0, this.width, 0, 2  * Math.PI);
+            c.fill();
+            c.fillStyle = "white";
+            c.font = "20px system-ui";
+            c.fillText(pickup_icons[content],-11,7,this.width*1.3);
+            c.restore();
+        }
+    })
+    sprites.push(pickup);
 }
 
 function endMenu() {
+    // callbacks must remove themselves
+    off("timer-end-game", endMenu);
     inMenuTransition = 1;
     activePlayer = 1-activePlayer;
     if (players[activePlayer].health < 1) {
@@ -532,8 +677,9 @@ function endMenu() {
 }
 
 function endGame() {
+    removeTimers("turn-timeout");
     inMenuTransition = 1;
-    setTimer("end-turn",61,endMenu);
+    setTimer("end-game",61,endMenu);
 }
 
 const uf = document.querySelector(".ui-fire");
@@ -545,36 +691,62 @@ const etb = document.querySelector(".end-turn");
 etb.onclick = function() {endTurn();}
 
 function startGame() {
-    activePlayer = 0;
-    inMenuTransition = 0;
-    currentMenu = 0;
-    sprites = [];
-    generateTerrain(Date.now() & 0xFFFFFFFF);
+    seed = Date.now() & 0xFFFFFFFF;
+    generateTerrain(seed);
+    spawnPlayer(300, 200);
+    spawnPlayer(1700, 200);
+    unicorn_image.onload();
+    unicorn_shift_image.onload();
+    for(let i=0; i<10; i++) {
+        makePreviewPoint(i);
+    }
+    setTimer("turn-timeout",1800,endTurn);
+    windSpeed = 0;
+}
+const re = document.querySelector(".end-replay");
+re.onclick = function() {exitGame(); startGame();}
 
+function exitGame() {
     es.classList.add("none");
     es.classList.add("hidden");
     players.map(player => {
         player.ttl = 0;
     });
-    players = players.filter(player => player.isAlive());
-    spawnPlayer(300, 200);
-    spawnPlayer(1700, 200);
-    unicorn_image.onload();
-    unicorn_shift_image.onload();
+    activePlayer = 0;
+    inMenuTransition = 0;
+    currentMenu = 0;
+    players = [];
+    sprites = [];
 }
-const re = document.querySelector(".end-replay");
-re.onclick = function() {startGame();}
+
+const ex = document.querySelector(".end-quit");
+ex.onclick = function() {
+    gameType = 0; exitGame();
+}
+
+const sp = document.querySelector(".menu-splash");
+const ps = document.querySelector(".play-s");
+ps.onclick = function() {gameType = 1; exitGame(); startGame();}
+const pm = document.querySelector(".play-m");
+pm.onclick = function() {gameType = 2; exitGame(); startGame();}
+const po = document.querySelector(".play-o");
+
+const timer = document.querySelector(".turn-timer");
+const wind = document.querySelector(".wind-speed");
 
 generateTerrain(Date.now() & 0xFFFFFFFF);
 let loop = GameLoop({  // create the main game loop
   update() { // update the game state
     timers.map(timer => timer.update()); // DON'T FORGET TO DO TIMECARDS!
     timers = timers.filter(timer => timer.isAlive()); // TIMECAAAAAAAARDS
+    timers = timers.filter(timer => timer.ttl != Infinity);
     sprites.map(sprite => sprite.update());
     players.map(players => players.update());
     sprites = sprites.filter(sprite => sprite.isAlive());
     if (!gameType > 0 || inMenuTransition > 0) {
         gc.classList.add("none");
+        timer.classList.add("none");
+        wind.classList.add("none");
         if (currentMenu == 3) { // end game
             es.classList.remove("none");
             es.classList.remove("hidden");
@@ -586,28 +758,38 @@ let loop = GameLoop({  // create the main game loop
         }
     } else {
         gc.classList.remove("none");
-    }
-    uf.classList.add("none");
-    ub.classList.add("none");
-    // update current UI
-    switch (currentMenu) {
-        case 1: { uf.classList.remove("none"); 
-            uf.innerHTML = `Angle: ${currentAngle} Power: ${currentPower}`; break; }
-        case 2: { ub.classList.remove("none"); 
-            ub.innerHTML = `🪵: ${currentWood}\t🪨: ${currentMetal}`;
+        timer.classList.remove("none");
+        timer.innerHTML = `${(getTimers("turn-timeout")[0].ttl/60).toFixed(1)}`;
+        wind.classList.remove("none");
+        wind.innerHTML = `Wind: ${(windSpeed*1000).toFixed(0)} mph`
+        uf.classList.add("none");
+        ub.classList.add("none");
+        // update current UI
+        switch (currentMenu) {
+            case 1: { uf.classList.remove("none"); 
+                uf.innerHTML = `Angle: ${players[activePlayer].angle} Power: ${players[activePlayer].power}`; break; }
+            case 2: { ub.classList.remove("none"); 
+                ub.innerHTML = `🪵: ${players[activePlayer].wood}\t🪨: ${players[activePlayer].metal}`;
+            }
+            default: break;
         }
-        default: break;
+    }
+    if (gameType == 0) {
+        sp.classList.remove("none");
+    } else {
+        sp.classList.add("none");
     }
     
     if (keyPressed('c')){
         currentMenu = 0;
     }
     if (keyPressed('p')){
-        menu_audio.stop();
-        menu_audio = zzfxP(...menu_data);
-        menu_audio.loop = true;
+        current_audio.stop();
+        current_audio = zzfxP(...menu_data);
+        current_audio.loop = true;
     }
 
+    if (gameType == 0) {cameraX = 0; return;}
     if (currentMenu > 0 && inMenuTransition == 0) {
         cameraX += 5 * (keyPressed('e') - keyPressed('q'));
     } else {

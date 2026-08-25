@@ -46,3 +46,16 @@ aug 22nd
 - integrated sound effects
 - rewrote the game to use modules - helps prep for possible online integration + saves 2k zipped
 - game can be restarted after victory
+- turn timer late at night
+
+aug 23rd
+- players can't always climb up the very steepest ramps
+
+aug 24th
+todo:
+wind, pickup system, platforms, splash menu for exit to go into
+- made and integrated opening menu
+- pickups drop and apply to the inventory, but cannot be switched or built
+- put wind in, may take it out later if it sucks
+- idea: metal blocks drills, wood blocks beams?
+made metal textures with tiny texture tumbler: https://phoboslab.org/ttt/
