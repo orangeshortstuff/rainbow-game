@@ -11,8 +11,11 @@ let spawn_sfx = [1.1,0,106,.01,.17,.33,,3.9,-7,,,,,.1,,.7,,.47,.07];
 let pickup_sfx = [1.8,0,321,.03,.06,.26,1,2.4,,,239,.08,,,,,.1,.67,.01];
 let jump_sfx = [.9,,395,.01,,,,3.5,11,65,,,,,,,,.72,.02,,-1499];
 let win_sfx = [,0,325,.04,.2,.71,1,3.5,,158,350,.17,.03,,,,.25,.96,.26,.23,737];
+let drill_hit_sfx = [.6,0,133,.01,.02,.13,,0,-1,-6,,,,1.2,,,,.51,.04];
+let beam_charge_sfx = [.9,0,144,.05,.17,.83,1,3,.3,,,,,,,.1,,,.26];
+let beam_fire_sfx = [,0,165,.02,.4,1.21,2,3.3,-.15,,,,,,,,.17,.76,.19];
 
-import { init, initKeys, Sprite, SpriteSheet, GameLoop, keyPressed, on, off, emit, bindKeys } from "../kontra.min.mjs"
+import kontra, { init, initKeys, Sprite, SpriteSheet, GameLoop, keyPressed, on, off, emit, bindKeys } from "../kontra.min.mjs"
 
 let { canvas } = init();
 /*
@@ -40,11 +43,12 @@ ws.onmessage = event => {
   }
 } */
 
-// left, right, down, jump, camera left/camera right (also select material / weapon), fire/place, cancel
+// left, right, down, jump, camera left/camera right, select material / weapon), fire/place, cancel
 let controls = [
-    ["a","d","s","w","q","e","z","c"],
-    ["left","right","down","up", "k","l","n","m"]
+    ["a","d","s","w","q","e","z","x","c"],
+    ["left","right","down","up", "k","l","b","n","m"]
 ];
+let weapon_names = ["Horn","Drill","Beam"];
 let sprites = [];
 let blocks = [];
 let heightmap = [];
@@ -310,8 +314,6 @@ let bullet = Sprite({
     ddy: 0.15,
     width: 15,
     height: 15,
-    colour:"white",
-    type:"bullet",
     rotation: players[activePlayer].angle,
     render() {
         // draw a right-facing triangle
@@ -333,7 +335,8 @@ let bullet = Sprite({
     update() {
         this.rotation=Math.atan2(this.dy, this.dx);
         this.advance();
-        if (this.x > canvas.width+cameraX || this.x < 0) {
+        cameraX = this.x-500;
+        if (this.x > canvas.width*2 || this.x < 0) {
             this.ttl = 0;
             endTurn();
             return;
@@ -362,6 +365,158 @@ bullet.advance();
 sprites.push(bullet);
 }
 
+function spawnDrill(p_x,p_y,v_x,v_y) {
+removeTimers("turn-timeout");
+let drill = Sprite({
+    x: p_x,
+    y: p_y,
+    dx: v_x,
+    dy: v_y,
+    ddx: windSpeed,
+    ddy: 0.15,
+    width: 15,
+    height: 15,
+    rotation: players[activePlayer].angle,
+    render() {
+        // draw a right-facing triangle
+        let ctx = this.context;
+        ctx.strokeStyle = 'black';
+        ctx.fillStyle = 'white';
+        ctx.save();
+        ctx.translate(this.x-cameraX, this.y);
+        ctx.rotate(this.rotation);
+        ctx.beginPath();
+        ctx.moveTo(-3, -5);
+        ctx.lineTo(12, 0);
+        ctx.lineTo(-3, 5);
+        ctx.lineTo(-3, -5);
+        ctx.fill();
+        ctx.moveTo(0, 4);
+        ctx.lineTo(0, -4);
+        ctx.moveTo(3, 3);
+        ctx.lineTo(3, -3);
+        ctx.moveTo(6, 2);
+        ctx.lineTo(6, -2);
+        ctx.closePath();
+        ctx.stroke();
+        ctx.restore();
+    },
+    update() {
+        this.rotation=Math.atan2(this.dy, this.dx);
+        this.advance();
+        cameraX = this.x-500;
+        if (this.x > canvas.width*2 || this.x < 0) {
+            this.ttl = 0;
+            endTurn();
+            return;
+        }
+        if (this.y > getWorldFloor(this.x, this.width, this.height)) {
+            this.ttl = 0;
+            endTurn();
+            zzfx(...drill_hit_sfx);
+            return;
+        }
+        // player collisions
+        players.map(player => {
+            if (this.x + this.width > player.x && this.x < player.x + player.width && 
+                this.y + this.height > player.y && this.y < player.y + player.height) {
+                this.ttl = 0;
+                zzfx(...drill_hit_sfx);
+                player.health -= 30;
+                if (player.health < 1) {
+                    endGame();
+                    return;
+                }
+                endTurn();
+                return;
+            }
+        });
+    }
+});
+drill.advance();
+sprites.push(drill);
+}
+
+function spawnBeam() {
+// callbacks must remove themselves
+off("timer-beam-spawn", spawnBeam);
+zzfx(...beam_fire_sfx);
+let ap = players[activePlayer];
+let v_x = Math.cos((Math.PI / 180) * ap.angle)*ap._fx;
+let v_y = Math.sin((Math.PI / 180) * ap.angle)*-1;
+let theta = Math.atan2(v_y, v_x);
+let beam = Sprite({
+    x: ap.x + 8.5*(3*ap._fx+1),
+    y: ap.y,
+    dx: 20*Math.cos(theta),
+    dy: 20*Math.sin(theta),
+    s_x: ap.x + 8.5*(3*ap._fx+1),
+    s_y: ap.y,
+    rotation: theta,
+    height: 25,
+    width: 5,
+    color: "white",
+    update() {
+        this.advance();
+        cameraX = this.x-500;
+        if (this.x > canvas.width*2 || this.x < 0) {
+            this.ttl = 0;
+            endTurn();
+            return;
+        }
+        if (this.y > getWorldFloor(this.x, this.width, this.height) || this.y < 0) {
+            this.ttl = 0;
+            endTurn();
+            return;
+        }
+        // player collisions
+        players.map(player => {
+            if (this.x + this.width > player.x && this.x < player.x + player.width && 
+                this.y + this.height > player.y && this.y < player.y + player.height) {
+                this.ttl = 0;
+                player.health -= 15;
+                if (player.health < 1) {
+                    endGame();
+                    return;
+                }
+                endTurn();
+                return;
+            }
+        });
+    },
+    render() {
+        let c = this.context;
+        c.save();
+        c.translate(this.s_x-cameraX, this.s_y);
+        c.strokeStyle = "#5BCEFA";
+        c.lineWidth = 25;
+        c.beginPath();
+        c.moveTo(0, 0);
+        c.lineTo(this.x-this.s_x, this.y-this.s_y);
+        c.stroke();
+        c.strokeStyle = "#F5A9B8";
+        c.lineWidth = 15;
+        c.moveTo(0, 0);
+        c.lineTo(this.x-this.s_x, this.y-this.s_y);
+        c.stroke();
+        c.strokeStyle = "white";
+        c.lineWidth = 5;
+        c.moveTo(0, 0);
+        c.lineTo(this.x-this.s_x, this.y-this.s_y);
+        c.stroke();
+        c.closePath();
+        c.restore();
+    },
+});
+sprites.push(beam);
+}
+
+function chargeBeam() {
+removeTimers("turn-timeout");
+setTimer("beam-spawn",100,spawnBeam);
+}
+
+
 // pickups are +3 to ammo / material
 function spawnPlayer(x,y) {
     let player = Sprite({
@@ -381,6 +536,7 @@ function spawnPlayer(x,y) {
         beams: 1,
         angle: 45,
         power: 50,
+        weapon: 0,
         update() {
             this.health = Math.max(Math.min(this.health,100),0);
             if (gameType == 0 || inMenuTransition > 0) { return; }
@@ -458,9 +614,9 @@ function spawnPlayer(x,y) {
                     switch(pickup.content) {
                         case 0: { this.health = Math.min(this.health+15, 100); break; }
                         case 1: { this.wood += 3; break; }
-                        case 2: { this.metal += 3; break; }
-                        case 3: { this.drills += 2; break; }
-                        case 4: { this.beams += 2; break; }
+                        case 2: { this.metal += 2; break; }
+                        case 3: { this.drills += 1; break; }
+                        case 4: { this.beams += 1; break; }
                         default: break;
                     }
                 }
@@ -470,15 +626,44 @@ function spawnPlayer(x,y) {
                 this.angle = Math.max(0,Math.min(90,this.angle));
                 this.power += (keyPressed("right") - keyPressed("left"));
                 this.power = Math.max(0,Math.min(100,this.power));
-                if (keyPressed('z')) {
+                if (keyPressed('z') || keyPressed('b')) {
                     let magnitude = this.power * 0.18;
                     // -1, -17 / 1, 34
-                    spawnBullet(this.x + 8.5*(3*this._fx+1),this.y,
-                                magnitude*Math.cos((Math.PI / 180) * this.angle)*this._fx,
-                                magnitude*Math.sin((Math.PI / 180) * this.angle)*-1);
-                    zzfx(...fire_sfx);
-                    inMenuTransition = 1;
-                    currentMenu = 0;
+                    switch(this.weapon) {
+                    case 1: { if (this.drills > 0) {
+                        this.drills--;
+                        if (this.drills == 0) { this.weapon = 0; }
+                        spawnDrill(this.x + 8.5*(3*this._fx+1),this.y,
+                            magnitude*Math.cos((Math.PI / 180) * this.angle)*this._fx,
+                            magnitude*Math.sin((Math.PI / 180) * this.angle)*-1);
+                        zzfx(...fire_sfx);
+                        inMenuTransition = 1;
+                        currentMenu = 0;
+                    } break; }
+                    case 2: { if (this.beams > 0) {
+                        this.beams--;
+                        if (this.beams == 0) { this.weapon = 0; }
+                        chargeBeam();
+                        zzfx(...beam_charge_sfx);
+                        inMenuTransition = 1;
+                        currentMenu = 0;
+                    } break; }
+                    default: spawnBullet(this.x + 8.5*(3*this._fx+1),this.y,
+                            magnitude*Math.cos((Math.PI / 180) * this.angle)*this._fx,
+                            magnitude*Math.sin((Math.PI / 180) * this.angle)*-1);
+                        zzfx(...fire_sfx);
+                        inMenuTransition = 1;
+                        currentMenu = 0;
+                    }
+                    
+                }
+                if ((keyPressed("x") || keyPressed("n")) && pressedWeaponRight == 0) {
+                    this.weapon += 1;
+                    this.weapon %= 3;
+                    pressedWeaponRight = 1;
+                }
+                if (!(keyPressed("x") || keyPressed("n"))) {
+                    pressedWeaponRight = 0;
                 }
             }
             
@@ -721,7 +906,11 @@ function exitGame() {
 
 const ex = document.querySelector(".end-quit");
 ex.onclick = function() {
-    gameType = 0; exitGame();
+    gameType = 0; 
+    current_audio.stop();
+    current_audio = zzfxP(...menu_data);
+    current_audio.loop = true;
+    exitGame();
 }
 
 const sp = document.querySelector(".menu-splash");
@@ -730,6 +919,8 @@ ps.onclick = function() {gameType = 1; exitGame(); startGame();}
 const pm = document.querySelector(".play-m");
 pm.onclick = function() {gameType = 2; exitGame(); startGame();}
 const po = document.querySelector(".play-o");
+const inst = document.querySelector(".instructions");
+const sett = document.querySelector(".settings");
 
 const timer = document.querySelector(".turn-timer");
 const wind = document.querySelector(".wind-speed");
@@ -764,12 +955,15 @@ let loop = GameLoop({  // create the main game loop
         wind.innerHTML = `Wind: ${(windSpeed*1000).toFixed(0)} mph`
         uf.classList.add("none");
         ub.classList.add("none");
+        let ap = players[activePlayer];
+        let ammo = ap.weapon == 0 ? "" : ap.weapon == 1 ? `(${ap.drills})`  : `(${ap.beams})`;
         // update current UI
         switch (currentMenu) {
             case 1: { uf.classList.remove("none"); 
-                uf.innerHTML = `Angle: ${players[activePlayer].angle} Power: ${players[activePlayer].power}`; break; }
+                uf.innerHTML = `Angle: ${ap.angle} Power: ${ap.power}
+                </br>Current weapon: ${weapon_names[ap.weapon]} ${ammo}`; break; }
             case 2: { ub.classList.remove("none"); 
-                ub.innerHTML = `🪵: ${players[activePlayer].wood}\t🪨: ${players[activePlayer].metal}`;
+                ub.innerHTML = `🪵: ${ap.wood}\t🪨: ${ap.metal}`;
             }
             default: break;
         }
@@ -793,10 +987,9 @@ let loop = GameLoop({  // create the main game loop
     if (currentMenu > 0 && inMenuTransition == 0) {
         cameraX += 5 * (keyPressed('e') - keyPressed('q'));
     } else {
-        if (currentMenu == 0 && inMenuTransition == 1) {
-            let bullets = sprites.filter(sprite => sprite.type == "bullet");
-            if (bullets[0]) {cameraX = bullets[0].x - 500;}
-        } else { cameraX = players[activePlayer].x - 500; }
+        if (inMenuTransition == 0) {
+            cameraX = players[activePlayer].x - 500;
+        }
     }
     cameraX = Math.min(canvas.width,Math.max(0, cameraX));
   },

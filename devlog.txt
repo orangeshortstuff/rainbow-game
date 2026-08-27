@@ -59,3 +59,7 @@ wind, pickup system, platforms, splash menu for exit to go into
 - put wind in, may take it out later if it sucks
 - idea: metal blocks drills, wood blocks beams?
 made metal textures with tiny texture tumbler: https://phoboslab.org/ttt/
+
+aug 26th
+- took a day off, came back to do the weapons
+- drill went fine, beam eventually sorted itself out (and is the trans flag)
