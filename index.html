@@ -9,180 +9,180 @@
 <body>
     <style>
         body {
-        background: black;
-        font-family: system-ui;
+        background:black;
+        font-family:system-ui;
         }
         canvas {
-        border: 1px solid white;
-        background: linear-gradient(#76dcf3, #12a1d9);
-        padding-left: 0;
-        padding-right: 0;
-        margin-left: auto;
-        margin-right: auto;
-        display: block;
+        border:1px solid white;
+        background:linear-gradient(#76dcf3, #12a1d9);
+        padding-left:0;
+        padding-right:0;
+        margin-left:auto;
+        margin-right:auto;
+        display:block;
         }
         .hidden {
-        opacity: 0;
-        pointer-events: none;
+        opacity:0;
+        pointer-events:none;
         }
         .none {
-        display: none;
+        display:none;
         }
         
         .game-ui {
-        position: absolute;
-        top: 8px;
-        left: 16px;
-        right: 16px;
-        display: flex;
-        justify-content: space-between;
-        color: #111;
-        font-size: 16px;
-        font-weight: bold;
-        width: 1000px;
-        height: 600px;
-        margin-left: auto;
-        margin-right: auto;
+        position:absolute;
+        top:8px;
+        left:16px;
+        right:16px;
+        display:flex;
+        justify-content:space-between;
+        color:#111;
+        font-size:16px;
+        font-weight:bold;
+        width:1000px;
+        height:600px;
+        margin-left:auto;
+        margin-right:auto;
         }
 
         button {
-        padding: 8px 16px;
-        border-radius: 2px;
-        border: none;
-        font-size: 30px;
-        letter-spacing: 1px;
-        color: white;
-        border: 2px solid #2e2e2e;
+        padding:8px 16px;
+        border-radius:2px;
+        border:none;
+        font-size:30px;
+        letter-spacing:1px;
+        color:white;
+        border:2px solid #2e2e2e;
         }
 
         .game-controls {
-        position: absolute;
-        top: 520px;
-        left: 0px;
-        width: 1000px;
-        height: 80px;
+        position:absolute;
+        top:520px;
+        left:0px;
+        width:1000px;
+        height:80px;
             p {
-            position: absolute;
-            vertical-align: text-top;
-            top: 0px;
-            left: 550px;
-            margin: 0;
-            font-size: 24px;
-            background-color: #29538a;
-            border: 2px solid #111;
-            padding: 3px;
+            position:absolute;
+            vertical-align:text-top;
+            top:0;
+            left:550px;
+            margin:0;
+            font-size:24px;
+            background-color:#29538a;
+            border:2px solid #111;
+            padding:3px;
             }
         }
         
         .fire {
-        position: absolute;
-        top: 0px;
-        left: 50px;
-        background-color: #d23737;
+        position:absolute;
+        top:0px;
+        left:50px;
+        background-color:#d23737;
         }
 
         .build {
-        position: absolute;
-        top: 0px;
-        left: 190px;
-        background-color: #3737d2;
+        position:absolute;
+        top:0px;
+        left:190px;
+        background-color:#3737d2;
         }
 
         .end-turn {
-        position: absolute;
-        top: 0px;
-        left: 350px;
-        background-color: #37d237;
+        position:absolute;
+        top:0px;
+        left:350px;
+        background-color:#37d237;
         }
 
         .turn-timer {
-            font-size: 40px;
-            margin: 0;
-            color: #2e2e2e;
-            text-align: center;
-            position: absolute;
-            top: 5%;
-            left: 50%;
-            transform: translateX(-50%) translateY(-50%);
+            font-size:40px;
+            margin:0;
+            color:#2e2e2e;
+            text-align:center;
+            position:absolute;
+            top:5%;
+            left:50%;
+            transform:translateX(-50%) translateY(-50%);
         }
 
         .wind-speed {
-            font-size: 20px;
-            margin: 0;
-            color: #2e2e2e;
-            text-align: center;
-            position: absolute;
-            top: 12%;
+            font-size:20px;
+            margin:0;
+            color:#2e2e2e;
+            text-align:center;
+            position:absolute;
+            top:12%;
             left: 50%;
-            transform: translateX(-50%) translateY(-50%);
+            transform:translateX(-50%) translateY(-50%);
         }
 
         .end-screen {
-            position: absolute;
-            height: 100%;
-            width: 100%;
+            position:absolute;
+            height:100%;
+            width:100%;
             .end-bg {
-            position: absolute;
-            top: 0px;
-            left: 0px;
-            height: 100%;
-            width: 100%;
-            background: #111;
-            opacity: 0.4;
+            position:absolute;
+            top:0px;
+            left:0px;
+            height:100%;
+            width:100%;
+            background:#111;
+            opacity:0.4;
             }
             p {
-                color: white;
-                -webkit-text-stroke: 3px #111;
-                margin: 0;
-                font-size: 80px;
-                text-align: center;
-                position: absolute;
-                top: 25%;
-                left: 50%;
-                transform: translateX(-50%) translateY(-50%);
+                color:white;
+                -webkit-text-stroke:3px #111;
+                margin:0;
+                font-size:80px;
+                text-align:center;
+                position:absolute;
+                top:25%;
+                left:50%;
+                transform:translateX(-50%) translateY(-50%);
             }
             div {
-                position: absolute;
-                top: 55%;
-                left: 50%;
-                transform: translateX(-50%) translateY(-50%);
+                position:absolute;
+                top:55%;
+                left:50%;
+                transform:translateX(-50%) translateY(-50%);
                 .end-quit {
                     margin-right:100px;
                 }
             }
             button {
-                background-color: #2e2e2e;
+                background-color:#2e2e2e;
             }
         }
         .menu-splash { 
-            position: absolute;
-            height: 100%;
-            width: 100%;
+            position:absolute;
+            height:100%;
+            width:100%;
             p {
-                margin-bottom: 0;
-                color: white;
-                -webkit-text-stroke: 3px #111;
-                margin: 0;
-                font-size: 80px;
-                text-align: center;
-                width: 70%;
+                margin-bottom:0;
+                color:white;
+                -webkit-text-stroke:3px #111;
+                margin:0;
+                font-size:80px;
+                text-align:center;
+                width:70%;
             }
             button {
-                background-color: #e2936f;
-                border: 4px solid #713b22;
+                background-color:#e2936f;
+                border:4px solid #713b22;
             }
         }
         .menu-buttons {
-            background-color: #bf6f4a;
-            display: inline grid; /* display: grid; also works if the container is not full width */
-            grid-auto-flow: row;
-            gap: 20px;
-            outline: 5px solid #713b22;
-            padding: 10px;
-            position: absolute;
-            right: 20px;
-            top: 340px;
-            transform: translateY(-50%);
+            background-color:#bf6f4a;
+            display:inline grid;
+            grid-auto-flow:row;
+            gap:20px;
+            outline:5px solid #713b22;
+            padding:10px;
+            position:absolute;
+            right:20px;
+            top:340px;
+            transform:translateY(-50%);
         }
     </style>
     <canvas width="1000" height="600"></canvas>
@@ -197,8 +197,8 @@
             <button class="menu-settings">Settings</button>
         </div>
     </section>
-    <p class="turn-timer none">30</p>
-    <p class="wind-speed none">Wind: 0.0 m/s</p>
+    <p class="turn-timer none"></p>
+    <p class="wind-speed none"></p>
     <section class="game-controls none">
         <button class="fire">Fire</button>
         <button class="build">Build</button>

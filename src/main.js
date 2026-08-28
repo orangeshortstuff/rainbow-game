@@ -14,8 +14,9 @@ let win_sfx = [,0,325,.04,.2,.71,1,3.5,,158,350,.17,.03,,,,.25,.96,.26,.23,737];
 let drill_hit_sfx = [.6,0,133,.01,.02,.13,,0,-1,-6,,,,1.2,,,,.51,.04];
 let beam_charge_sfx = [.9,0,144,.05,.17,.83,1,3,.3,,,,,,,.1,,,.26];
 let beam_fire_sfx = [,0,165,.02,.4,1.21,2,3.3,-.15,,,,,,,,.17,.76,.19];
+let error_sfx = [2.8,0,74,,,.07,1,1.8,,,,.07,.02,,37,,.08,.78,,,99];
 
-import kontra, { init, initKeys, Sprite, SpriteSheet, GameLoop, keyPressed, on, off, emit, bindKeys } from "../kontra.min.mjs"
+import { init, initKeys, Sprite, SpriteSheet, GameLoop, keyPressed, on, off, emit, bindKeys } from "../kontra.min.mjs"
 
 let { canvas } = init();
 /*
@@ -43,10 +44,10 @@ ws.onmessage = event => {
   }
 } */
 
-// left, right, down, jump, camera left/camera right, select material / weapon), fire/place, cancel
+// left, right, down, jump, camera left/camera right, fire/place, select material / weapon, cancel, flip platform
 let controls = [
-    ["a","d","s","w","q","e","z","x","c"],
-    ["left","right","down","up", "k","l","b","n","m"]
+    ["a","d","s","w","q","e","z","x","c","r"],
+    ["left","right","down","up", "k","l","b","n","m","j"]
 ];
 let weapon_names = ["Horn","Drill","Beam"];
 let sprites = [];
@@ -60,7 +61,7 @@ let inMenuTransition = 0;
 let gameType = 0; // 1 for vs bot, 2 for local multiplayer, 3 for online, 0 for the lobby
 let seed = 0;
 let windSpeed = 0;
-let pressedWeaponLeft = 0, pressedWeaponRight = 0; // kontra 6 doesn't have onKey callbacks, so deal with weapon selection
+let inputSwitch = 0, inputRotate = 0; // kontra 6 doesn't have onKey callbacks, so deal with weapon selection
 
 const terrainLayers = 6;
 const baseTerrainPoints = 8;
@@ -157,30 +158,30 @@ function generateTerrain(seed) {
             type: "block",
             render() {
                 // draw a right-facing triangle
-                let ctx = this.context;
-                ctx.strokeStyle = 'green';
-                ctx.fillStyle = 'green';
-                ctx.save();
-                ctx.translate(this.x-cameraX, this.y);
-                ctx.beginPath();
-                ctx.moveTo(0, 0);
-                ctx.lineTo(this.width, this.drop);
-                ctx.lineTo(this.width, this.drop+20);
-                ctx.lineTo(0, 20);
-                ctx.fill();
-                ctx.closePath();
-                ctx.stroke();
-                ctx.strokeStyle = '#713b22';
-                ctx.fillStyle = '#713b22';
-                ctx.beginPath();
-                ctx.moveTo(0, 20);
-                ctx.lineTo(this.width, this.drop+20);
-                ctx.lineTo(this.width, 600);
-                ctx.lineTo(0, 600);
-                ctx.fill();
-                ctx.closePath();
-                ctx.stroke();
-                ctx.restore();
+                let c = this.context;
+                c.strokeStyle = 'green';
+                c.fillStyle = 'green';
+                c.save();
+                c.translate(this.x-cameraX, this.y);
+                c.beginPath();
+                c.moveTo(0, 0);
+                c.lineTo(this.width, this.drop);
+                c.lineTo(this.width, this.drop+20);
+                c.lineTo(0, 20);
+                c.fill();
+                c.closePath();
+                c.stroke();
+                c.strokeStyle = '#713b22';
+                c.fillStyle = '#713b22';
+                c.beginPath();
+                c.moveTo(0, 20);
+                c.lineTo(this.width, this.drop+20);
+                c.lineTo(this.width, 600);
+                c.lineTo(0, 600);
+                c.fill();
+                c.closePath();
+                c.stroke();
+                c.restore();
             },
         });
         block.drop = (i+1 == heightmap.length ? 0 : ((1-heightmap[i+1]) * canvas.height)-block.y);
@@ -235,7 +236,7 @@ function makePreviewPoint(i) {
             let v_x = magnitude*Math.cos((Math.PI / 180) * a.angle)*a._fx;
             let v_y = magnitude*Math.sin((Math.PI / 180) * a.angle)*-1;
             let t = (8-this.radius)*6;
-            this.x = a.x+ 8.5*(3*a._fx+1)+(t*v_x);
+            this.x = a.x+ 8.5*(3*a._fx+1)+(t*v_x+(t*t*windSpeed/2));
             this.y = a.y+(t*v_y+(t*t*0.075));
         },
         render() {
@@ -317,20 +318,20 @@ let bullet = Sprite({
     rotation: players[activePlayer].angle,
     render() {
         // draw a right-facing triangle
-        let ctx = this.context;
-        ctx.strokeStyle = 'black';
-        ctx.fillStyle = 'white';
-        ctx.save();
-        ctx.translate(this.x-cameraX, this.y);
-        ctx.rotate(this.rotation);
-        ctx.beginPath();
-        ctx.moveTo(-3, -5);
-        ctx.lineTo(12, 0);
-        ctx.lineTo(-3, 5);
-        ctx.fill();
-        ctx.closePath();
-        ctx.stroke();
-        ctx.restore();
+        let c = this.context;
+        c.strokeStyle = 'black';
+        c.fillStyle = 'white';
+        c.save();
+        c.translate(this.x-cameraX, this.y);
+        c.rotate(this.rotation);
+        c.beginPath();
+        c.moveTo(-3, -5);
+        c.lineTo(12, 0);
+        c.lineTo(-3, 5);
+        c.fill();
+        c.closePath();
+        c.stroke();
+        c.restore();
     },
     update() {
         this.rotation=Math.atan2(this.dy, this.dx);
@@ -379,27 +380,27 @@ let drill = Sprite({
     rotation: players[activePlayer].angle,
     render() {
         // draw a right-facing triangle
-        let ctx = this.context;
-        ctx.strokeStyle = 'black';
-        ctx.fillStyle = 'white';
-        ctx.save();
-        ctx.translate(this.x-cameraX, this.y);
-        ctx.rotate(this.rotation);
-        ctx.beginPath();
-        ctx.moveTo(-3, -5);
-        ctx.lineTo(12, 0);
-        ctx.lineTo(-3, 5);
-        ctx.lineTo(-3, -5);
-        ctx.fill();
-        ctx.moveTo(0, 4);
-        ctx.lineTo(0, -4);
-        ctx.moveTo(3, 3);
-        ctx.lineTo(3, -3);
-        ctx.moveTo(6, 2);
-        ctx.lineTo(6, -2);
-        ctx.closePath();
-        ctx.stroke();
-        ctx.restore();
+        let c = this.context;
+        c.strokeStyle = 'black';
+        c.fillStyle = 'white';
+        c.save();
+        c.translate(this.x-cameraX, this.y);
+        c.rotate(this.rotation);
+        c.beginPath();
+        c.moveTo(-3, -5);
+        c.lineTo(12, 0);
+        c.lineTo(-3, 5);
+        c.lineTo(-3, -5);
+        c.fill();
+        c.moveTo(0, 4);
+        c.lineTo(0, -4);
+        c.moveTo(3, 3);
+        c.lineTo(3, -3);
+        c.moveTo(6, 2);
+        c.lineTo(6, -2);
+        c.closePath();
+        c.stroke();
+        c.restore();
     },
     update() {
         this.rotation=Math.atan2(this.dy, this.dx);
@@ -516,6 +517,16 @@ removeTimers("turn-timeout");
 setTimer("beam-spawn",100,spawnBeam);
 }
 
+function filterInputs(mask) {
+    let l = controls[0].length;
+    let inputs = Array(l).fill(false);
+    mask.forEach(row => {
+        for (let i = 0; i < l; i++) {
+            inputs[i] |= keyPressed(controls[row][i]);
+        }}
+    )
+    return inputs;
+}
 
 // pickups are +3 to ammo / material
 function spawnPlayer(x,y) {
@@ -537,46 +548,19 @@ function spawnPlayer(x,y) {
         angle: 45,
         power: 50,
         weapon: 0,
+        pl_x: 0,
+        pl_y: 0,
+        pl_type: 0,
+        pl_rotate: 0,
         update() {
+            let inputs; // left, right, down, jump, camera left/camera right, fire/place, select material / weapon, cancel
+            if (gameType == 2) {
+                inputs = filterInputs([this.id]);
+            } else {
+                inputs = filterInputs([0,1]);
+            }
             this.health = Math.max(Math.min(this.health,100),0);
             if (gameType == 0 || inMenuTransition > 0) { return; }
-            // move the sprite with the keyboard
-            if (this.id == activePlayer && currentMenu == 0) {
-                if (keyPressed('left') || keyPressed('a')) {
-                    this.x -= this.dx;
-                    this._fx = -1;
-                    if (this.currentAnimation != this.animations["jump"] && this.currentAnimation != this.animations["fall"]) {
-                        this.playAnimation("walk");
-                    }
-                    let worldFloor = getWorldFloor(this.x, this.width, this.height);
-                    if (this.y - 8 > worldFloor) {
-                        this.x += this.dx;
-                    }
-                }
-                else if (keyPressed('right') || keyPressed('d')) {
-                    this.x += this.dx;
-                    this._fx = 1;
-                    if (this.currentAnimation != this.animations["jump"] && this.currentAnimation != this.animations["fall"]) {
-                        this.playAnimation("walk");
-                    }
-                    let worldFloor = getWorldFloor(this.x, this.width, this.height);
-                    if (this.y - 8 > worldFloor) {
-                        this.x -= this.dx;
-                    }
-                } else {
-                    this.playAnimation("idle");
-                }
-                // reset the sprites position when it reaches the edge of the game
-                if (this.x > canvas.width*2 - this.width) {
-                    this.x = canvas.width*2 - this.width;
-                }
-                else if (this.x < 0) {
-                    this.x = 0;
-                }
-            }
-            let prevX = this.x;
-            this.advance();
-            this.x = prevX;
             // collisions with ground
             let worldFloor = getWorldFloor(this.x, this.width, this.height);
             if (worldFloor > this.y) {
@@ -598,7 +582,7 @@ function spawnPlayer(x,y) {
                 this.ddy = 0;
                 this.dy = 0;
                 this.y = worldFloor;
-                if ((keyPressed("up")||keyPressed("w"))  && this.id == activePlayer && currentMenu == 0) { // prevent jumps if building
+                if (inputs[3] && this.id == activePlayer && currentMenu == 0) { // prevent jumps if building
                     this.dy = -5;
                     this.y -= 5;
                     this.jumped = true;
@@ -621,12 +605,59 @@ function spawnPlayer(x,y) {
                     }
                 }
             });
-            if (this.id == activePlayer && currentMenu == 1 ) {
-                this.angle += (keyPressed("up") - keyPressed("down"));
+            let prevX = this.x;
+            this.advance();
+            this.x = prevX;
+            if (this.id != activePlayer) { return; }
+            if (currentMenu > 0 && inMenuTransition == 0) {
+                cameraX += 5 * (inputs[5] - inputs[4]);
+            } else {
+                if (inMenuTransition == 0) {
+                    cameraX = this.x - 500;
+                }
+            }
+            if (currentMenu == 0) {
+                if (inputs[0]) {
+                    this.x -= this.dx;
+                    this._fx = -1;
+                    if (this.currentAnimation != this.animations["jump"] && this.currentAnimation != this.animations["fall"]) {
+                        this.playAnimation("walk");
+                    }
+                    let worldFloor = getWorldFloor(this.x, this.width, this.height);
+                    if (this.y - 8 > worldFloor) {
+                        this.x += this.dx;
+                    }
+                }
+                else if (inputs[1]) {
+                    this.x += this.dx;
+                    this._fx = 1;
+                    if (this.currentAnimation != this.animations["jump"] && this.currentAnimation != this.animations["fall"]) {
+                        this.playAnimation("walk");
+                    }
+                    let worldFloor = getWorldFloor(this.x, this.width, this.height);
+                    if (this.y - 8 > worldFloor) {
+                        this.x -= this.dx;
+                    }
+                } else {
+                    this.playAnimation("idle");
+                }
+                // reset the sprites position when it reaches the edge of the game
+                if (this.x > canvas.width*2 - this.width) {
+                    this.x = canvas.width*2 - this.width;
+                }
+                else if (this.x < 0) {
+                    this.x = 0;
+                }
+            }
+            if (inputs[8]){
+                currentMenu = 0;
+            }
+            if (currentMenu == 1 ) {
+                this.angle += (inputs[3] - inputs[2]);
                 this.angle = Math.max(0,Math.min(90,this.angle));
-                this.power += (keyPressed("right") - keyPressed("left"));
+                this.power += (inputs[1] - inputs[0]);
                 this.power = Math.max(0,Math.min(100,this.power));
-                if (keyPressed('z') || keyPressed('b')) {
+                if (inputs[6]) {
                     let magnitude = this.power * 0.18;
                     // -1, -17 / 1, 34
                     switch(this.weapon) {
@@ -657,16 +688,48 @@ function spawnPlayer(x,y) {
                     }
                     
                 }
-                if ((keyPressed("x") || keyPressed("n")) && pressedWeaponRight == 0) {
+                if (inputs[7] && inputSwitch == 0) {
                     this.weapon += 1;
                     this.weapon %= 3;
-                    pressedWeaponRight = 1;
+                    inputSwitch = 1;
                 }
-                if (!(keyPressed("x") || keyPressed("n"))) {
-                    pressedWeaponRight = 0;
+                if (!inputs[7]) {
+                    inputSwitch = 0;
                 }
             }
-            
+            if (currentMenu == 2 ) {
+                this.pl_x += 2*(inputs[1] - inputs[0]);
+                this.pl_x = Math.max(-84,Math.min(116,this.pl_x));
+                this.pl_y += 2*(inputs[2] - inputs[3]);
+                this.pl_y = Math.max(-116,Math.min(116,this.pl_y));
+                if (inputs[6]) {
+                    if(this.pl_type == 1 ? (this.metal > 0) : (this.wood > 0)) {
+                        spawnPlatform(this.x+this.pl_x, Math.round(this.y+this.pl_y), this.pl_rotate, this.pl_type);
+                        this.pl_type == 1 ? (this.metal--) : (this.wood--);
+                    } else {
+                        zzfx(...error_sfx);
+                    }
+                    currentMenu = 0;
+                    this.pl_x = 16;
+                    this.pl_y = 16;
+                }
+                if (inputs[7] && inputSwitch == 0) {
+                    this.pl_type += 1;
+                    this.pl_type %= 2;
+                    inputSwitch = 1;
+                }
+                if (!inputs[7]) {
+                    inputSwitch = 0;
+                }
+                if (inputs[9] && inputRotate == 0) {
+                    this.pl_rotate += 1;
+                    this.pl_rotate %= 2;
+                    inputRotate = 1;
+                }
+                if (!inputs[9]) {
+                    inputRotate = 0;
+                }
+            }
         },
         
         render() {
@@ -686,18 +749,22 @@ function spawnPlayer(x,y) {
             c.fillRect(this.x+1,this.y-7,this.width-2, 6);
             c.fillStyle = `lch(${55+(this.health/3)}% 100 ${this.health+37.97})`;
             c.fillRect(this.x+1,this.y-7,(this.width-2)*(this.health/100), 6);
-            c.restore();
             this.x += cameraX;
+            c.restore();
+            if (currentMenu == 2 && this.id == activePlayer) {
+                c.save();
+                c.translate(this.x+this.pl_x-cameraX, Math.round(this.y+this.pl_y));
+                c.rotate(this.pl_rotate * (Math.PI/2));
+                c.translate(-12,-5);
+                let im = this.pl_type == 1 ? metal : wood;
+                c.drawImage(im,0,0);
+                c.restore();
+                
+            }
         }
     });
     players.push(player);
 };
-
-spawnPlayer(300, 200);
-spawnPlayer(1700, 200);
-for(let i=0; i<10; i++) {
-    makePreviewPoint(i);
-}
 
 let unicorn_anims = {
     idle: {
@@ -752,14 +819,24 @@ wood.src = 'images/wood.png';
 let metal = new Image();
 metal.src = 'images/metal.png';
 
-function spawnPlatform(x,y,type) {
+function spawnPlatform(x,y,rotated,type) {
 let platform = Sprite({
-    x:0,
+    x:x,
+    y:y,
+    anchor: {x: 0.5, y: 0.5},
     width: 24,
     height: 10,
-    rotation: 0,
+    rotation: rotated ? Math.PI / 2 : 0,
     image: (type == 0 ? wood: metal),
+    render() {
+        let c = this.context;
+        c.save();
+        c.translate(-cameraX, 0);
+        this.draw();
+        c.restore();
+    }
     });
+    sprites.push(platform);
 };
 
 // prevent default key behavior
@@ -793,7 +870,7 @@ function swapTurn() {
     seed = xorshift32(seed);
     windSpeed = Math.pow(((seed / 0x7FFFFFFF)-1),1)*0.05;
     removeTimers("turn-timeout");
-    setTimer("turn-timeout",1800,endTurn); // start new turn timer
+    setTimer("turn-timeout",2700,endTurn); // start new turn timer
 }
 
 function endTurn() {
@@ -885,7 +962,7 @@ function startGame() {
     for(let i=0; i<10; i++) {
         makePreviewPoint(i);
     }
-    setTimer("turn-timeout",1800,endTurn);
+    setTimer("turn-timeout",2700,endTurn);
     windSpeed = 0;
 }
 const re = document.querySelector(".end-replay");
@@ -925,7 +1002,6 @@ const sett = document.querySelector(".settings");
 const timer = document.querySelector(".turn-timer");
 const wind = document.querySelector(".wind-speed");
 
-generateTerrain(Date.now() & 0xFFFFFFFF);
 let loop = GameLoop({  // create the main game loop
   update() { // update the game state
     timers.map(timer => timer.update()); // DON'T FORGET TO DO TIMECARDS!
@@ -959,24 +1035,13 @@ let loop = GameLoop({  // create the main game loop
         let ammo = ap.weapon == 0 ? "" : ap.weapon == 1 ? `(${ap.drills})`  : `(${ap.beams})`;
         // update current UI
         switch (currentMenu) {
-            case 1: { uf.classList.remove("none"); 
-                uf.innerHTML = `Angle: ${ap.angle} Power: ${ap.power}
-                </br>Current weapon: ${weapon_names[ap.weapon]} ${ammo}`; break; }
-            case 2: { ub.classList.remove("none"); 
-                ub.innerHTML = `🪵: ${ap.wood}\t🪨: ${ap.metal}`;
-            }
+            case 1: { uf.classList.remove("none"); uf.innerHTML = `Angle: ${ap.angle} Power: ${ap.power}</br>Current weapon: ${weapon_names[ap.weapon]} ${ammo}`; break; }
+            case 2: { ub.classList.remove("none"); ub.innerHTML = `🪵: ${ap.wood}\t🪨: ${ap.metal}`;}
             default: break;
         }
     }
-    if (gameType == 0) {
-        sp.classList.remove("none");
-    } else {
-        sp.classList.add("none");
-    }
+    if (gameType == 0) { sp.classList.remove("none"); } else { sp.classList.add("none"); }
     
-    if (keyPressed('c')){
-        currentMenu = 0;
-    }
     if (keyPressed('p')){
         current_audio.stop();
         current_audio = zzfxP(...menu_data);
@@ -984,13 +1049,6 @@ let loop = GameLoop({  // create the main game loop
     }
 
     if (gameType == 0) {cameraX = 0; return;}
-    if (currentMenu > 0 && inMenuTransition == 0) {
-        cameraX += 5 * (keyPressed('e') - keyPressed('q'));
-    } else {
-        if (inMenuTransition == 0) {
-            cameraX = players[activePlayer].x - 500;
-        }
-    }
     cameraX = Math.min(canvas.width,Math.max(0, cameraX));
   },
   render() { // render the game state

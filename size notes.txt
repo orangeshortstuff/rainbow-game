@@ -1,4 +1,4 @@
 kontra (before tree-shaking) - ~6.5k zipped
-html (at present) - 724
-images - 584
-8503/13312 after rollup, roadroller, zip, advzip
+html (at present) - 1128
+images - 1082
+10633/13312 after rollup, roadroller, zip, advzip

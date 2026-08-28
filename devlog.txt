@@ -58,8 +58,14 @@ wind, pickup system, platforms, splash menu for exit to go into
 - pickups drop and apply to the inventory, but cannot be switched or built
 - put wind in, may take it out later if it sucks
 - idea: metal blocks drills, wood blocks beams?
-made metal textures with tiny texture tumbler: https://phoboslab.org/ttt/
+made metal textures with tiny texture tumbler ( https://phoboslab.org/ttt/ ) and modified the wood texture from one of the given samples
 
 aug 26th
 - took a day off, came back to do the weapons
-- drill went fine, beam eventually sorted itself out (and is the trans flag)
+- drill went fine, beam eventually sorted itself out (and is the trans flag, because unicorns are inherently trans-coded imo)
+
+aug 27th
+- platform building
+- platforms can only be horizontal / vertical, so aabb can be used (good for grug brain)
+- set timer to 45 seconds from 30, to give more time to build (which doesn't end the turn)
+- both players now have their own set of controls (will add the instructions menu, can add keybinds in settings?)
