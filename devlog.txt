@@ -69,3 +69,7 @@ aug 27th
 - platforms can only be horizontal / vertical, so aabb can be used (good for grug brain)
 - set timer to 45 seconds from 30, to give more time to build (which doesn't end the turn)
 - both players now have their own set of controls (will add the instructions menu, can add keybinds in settings?)
+
+aug 29th
+- platforms now collide with bullets
+- player collision is still too buggy to be satisfied with

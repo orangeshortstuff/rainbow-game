@@ -342,11 +342,11 @@ let bullet = Sprite({
             endTurn();
             return;
         }
-        if (this.y > getWorldFloor(this.x, this.width, this.height)) {
+        if (this.y > getWorldFloor(this.x, this.width, this.height) || collidePlatforms(this, 0)) {
             this.ttl = 0;
             endTurn();
             // explode on floor - calculate splash damage
-            explosion(0.5*this.width+this.x, getWorldFloor(this.x, this.width, this.height));
+            explosion(0.5*this.width+this.x, 0.5*this.height+this.y);
             return;
         }
         // player collisions
@@ -411,7 +411,7 @@ let drill = Sprite({
             endTurn();
             return;
         }
-        if (this.y > getWorldFloor(this.x, this.width, this.height)) {
+        if (this.y > getWorldFloor(this.x, this.width, this.height) || collidePlatforms(this, 0)) {
             this.ttl = 0;
             endTurn();
             zzfx(...drill_hit_sfx);
@@ -465,7 +465,7 @@ let beam = Sprite({
             endTurn();
             return;
         }
-        if (this.y > getWorldFloor(this.x, this.width, this.height) || this.y < 0) {
+        if (this.y > getWorldFloor(this.x, this.width, this.height) || this.y < 0 || collidePlatforms(this, 0))  {
             this.ttl = 0;
             endTurn();
             return;
@@ -517,6 +517,45 @@ removeTimers("turn-timeout");
 setTimer("beam-spawn",100,spawnBeam);
 }
 
+function collidePlatforms(obj, moveMask=0) {
+    const platforms = sprites.filter(sprite => sprite.type == "platform");
+    if (platforms.length == 0) {return;}
+    let x_offset, y_offset, hit = false;
+    platforms.forEach(platform => {
+        if (platform.rotation > 0) {
+            x_offset = 5;
+            y_offset = 12;
+        } else {
+            x_offset = 12;
+            y_offset = 5;
+        }
+        if (obj.x < platform.x + x_offset && obj.x + obj.width > platform.x - x_offset &&
+            obj.y < platform.y + y_offset && obj.y + obj.height > platform.y - y_offset) {
+                // horizontal movement
+                if (moveMask & 1) {
+                    if (obj.x+(obj.width/2) < platform.x) {
+                        obj.x = platform.x - (obj.width+x_offset);
+                    } else {
+                        obj.x = platform.x + x_offset;
+                    }
+                }
+                if (moveMask & 2) {
+                    obj.dy = 0;
+                    if (obj.y+(obj.height/2) < platform.y) {
+                        obj.y = platform.y - (obj.height+y_offset);
+                        if (!(obj.grounded === null)) {
+                            obj.grounded = true;
+                        }
+                    } else {
+                        obj.y = platform.y + y_offset;
+                    }
+                }
+                hit = true;
+        }
+    })
+    return hit;
+}
+
 function filterInputs(mask) {
     let l = controls[0].length;
     let inputs = Array(l).fill(false);
@@ -563,8 +602,28 @@ function spawnPlayer(x,y) {
             if (gameType == 0 || inMenuTransition > 0) { return; }
             // collisions with ground
             let worldFloor = getWorldFloor(this.x, this.width, this.height);
-            if (worldFloor > this.y) {
+            if ((worldFloor > this.y)) {
                 this.grounded = false;
+            } else {
+                this.grounded = true;
+                this.y = worldFloor;
+            }
+            if (this.grounded) {
+                this.jumped = false;
+                this.ddy = 0;
+                this.dy = 0;
+
+                if (this.currentAnimation == this.animations["jump"] || this.currentAnimation == this.animations["fall"]) {
+                    this.playAnimation("idle");
+                }
+                
+                if (inputs[3] && this.id == activePlayer && currentMenu == 0) { // prevent jumps if building
+                    this.dy = -5;
+                    this.y -= 5;
+                    this.jumped = true;
+                    zzfx(...jump_sfx);
+                }
+            } else {
                 this.ddy = 0.15;
                 if (this.jumped || (this.dy > 1.5)) {
                     if (this.dy < 0) {
@@ -572,21 +631,6 @@ function spawnPlayer(x,y) {
                     } else {
                         this.playAnimation("fall");
                     }
-                }
-            } else {
-                if (this.currentAnimation == this.animations["jump"] || this.currentAnimation == this.animations["fall"]) {
-                    this.playAnimation("idle");
-                }
-                this.grounded = true;
-                this.jumped = false;
-                this.ddy = 0;
-                this.dy = 0;
-                this.y = worldFloor;
-                if (inputs[3] && this.id == activePlayer && currentMenu == 0) { // prevent jumps if building
-                    this.dy = -5;
-                    this.y -= 5;
-                    this.jumped = true;
-                    zzfx(...jump_sfx);
                 }
             }
             let pickups = sprites.filter(sprite => sprite.type == "pickup");
@@ -605,9 +649,11 @@ function spawnPlayer(x,y) {
                     }
                 }
             });
+            collidePlatforms(this, 1);
             let prevX = this.x;
             this.advance();
             this.x = prevX;
+            collidePlatforms(this, 2);
             if (this.id != activePlayer) { return; }
             if (currentMenu > 0 && inMenuTransition == 0) {
                 cameraX += 5 * (inputs[5] - inputs[4]);
@@ -795,8 +841,10 @@ unicorn_image.onload = function() {
         frameMargin: 0,
     });
     unicorn_sheet.createAnimations(unicorn_anims);
-    players[0].animations = unicorn_sheet.animations;
-    players[0].playAnimation('idle');
+    if (!(players[0] === undefined)) {
+        players[0].animations = unicorn_sheet.animations;
+        players[0].playAnimation('idle');
+    }
 };
 
 let unicorn_shift_image = new Image();
@@ -809,8 +857,10 @@ unicorn_shift_image.onload = function() {
         frameMargin: 0,
     });
     unicorn_shift_sheet.createAnimations(unicorn_anims);
-    players[1].animations = unicorn_shift_sheet.animations;
-    players[1].playAnimation('idle');
+    if (!(players[1] === undefined)) {
+        players[1].animations = unicorn_shift_sheet.animations;
+        players[1].playAnimation('idle');
+    }
 }
 
 let wood = new Image();
@@ -828,6 +878,7 @@ let platform = Sprite({
     height: 10,
     rotation: rotated ? Math.PI / 2 : 0,
     image: (type == 0 ? wood: metal),
+    type: "platform",
     render() {
         let c = this.context;
         c.save();
@@ -904,6 +955,11 @@ function spawnPickup() {
                 this.dy = 0;
                 this.ddy = 0;
                 this.y = getWorldFloor(this.x, this.width, this.height) - 0.5;
+                setTimer("end-turn",60,swapTurn);
+            }
+            if (collidePlatforms(this,2)) {
+                this.dy = 0;
+                this.ddy = 0;
                 setTimer("end-turn",60,swapTurn);
             }
         },
