@@ -14,7 +14,7 @@ let win_sfx = [,0,325,.04,.2,.71,1,3.5,,158,350,.17,.03,,,,.25,.96,.26,.23,737];
 let drill_hit_sfx = [.6,0,133,.01,.02,.13,,0,-1,-6,,,,1.2,,,,.51,.04];
 let beam_charge_sfx = [.9,0,144,.05,.17,.83,1,3,.3,,,,,,,.1,,,.26];
 let beam_fire_sfx = [,0,165,.02,.4,1.21,2,3.3,-.15,,,,,,,,.17,.76,.19];
-let error_sfx = [2.8,0,74,,,.07,1,1.8,,,,.07,.02,,37,,.08,.78,,,99];
+let error_sfx = [2.8,0,100,,,.07,1,1.8,,,,.07,.02,,37,,.08,.78,,,99];
 
 import { init, initKeys, Sprite, SpriteSheet, GameLoop, keyPressed, on, off, emit, bindKeys } from "../kontra.min.mjs"
 
@@ -127,7 +127,6 @@ function generateTerrain(seed) {
     }
     // merge layers
     for (let i = 0; i < terrainLayers-1; i++) {
-        let len = heightmap[i].length;
         for (let j=0; j<heightmap[terrainLayers-1].length; j++) {
             let idx = j/Math.pow(2,(terrainLayers-1)-i);
             heightmap[terrainLayers-1][j] += cosp(heightmap[i][Math.floor(idx)],heightmap[i][Math.ceil(idx)], idx-Math.floor(idx));
@@ -342,7 +341,10 @@ let bullet = Sprite({
             endTurn();
             return;
         }
-        if (this.y > getWorldFloor(this.x, this.width, this.height) || collidePlatforms(this, 0)) {
+        if (this.y > getWorldFloor(this.x, this.width, this.height) || collidePlatforms(this).mask) {
+            if (collidePlatforms(this).objects[0]) {
+                sprites[collidePlatforms(this).objects[0]].ttl = 0;
+            }
             this.ttl = 0;
             endTurn();
             // explode on floor - calculate splash damage
@@ -411,11 +413,16 @@ let drill = Sprite({
             endTurn();
             return;
         }
-        if (this.y > getWorldFloor(this.x, this.width, this.height) || collidePlatforms(this, 0)) {
-            this.ttl = 0;
-            endTurn();
-            zzfx(...drill_hit_sfx);
-            return;
+        if (this.y > getWorldFloor(this.x, this.width, this.height) || collidePlatforms(this).mask) {
+            let hit = sprites[collidePlatforms(this).objects[0]];
+            if (hit){
+                if (hit.material == "wood") { hit.ttl = 0; }
+            } else {
+                this.ttl = 0;
+                endTurn();
+                zzfx(...drill_hit_sfx);
+                return;
+            }
         }
         // player collisions
         players.map(player => {
@@ -449,8 +456,8 @@ let theta = Math.atan2(v_y, v_x);
 let beam = Sprite({
     x: ap.x + 8.5*(3*ap._fx+1),
     y: ap.y,
-    dx: 20*Math.cos(theta),
-    dy: 20*Math.sin(theta),
+    dx: 10*Math.cos(theta),
+    dy: 10*Math.sin(theta),
     s_x: ap.x + 8.5*(3*ap._fx+1),
     s_y: ap.y,
     rotation: theta,
@@ -465,10 +472,15 @@ let beam = Sprite({
             endTurn();
             return;
         }
-        if (this.y > getWorldFloor(this.x, this.width, this.height) || this.y < 0 || collidePlatforms(this, 0))  {
-            this.ttl = 0;
+        if (this.y > getWorldFloor(this.x, this.width, this.height) || this.y < 0 || collidePlatforms(this).mask)  {
+            let hit = sprites[collidePlatforms(this).objects[0]];
+            if (hit){
+                if (hit.material == "metal") { hit.ttl = 0; }
+            } else {
+                this.ttl = 0;
             endTurn();
             return;
+            }
         }
         // player collisions
         players.map(player => {
@@ -517,43 +529,34 @@ removeTimers("turn-timeout");
 setTimer("beam-spawn",100,spawnBeam);
 }
 
-function collidePlatforms(obj, moveMask=0) {
-    const platforms = sprites.filter(sprite => sprite.type == "platform");
-    if (platforms.length == 0) {return;}
-    let x_offset, y_offset, hit = false;
-    platforms.forEach(platform => {
-        if (platform.rotation > 0) {
+function collidePlatforms(obj) {
+    let x_offset, y_offset, hit = 0, objs = [];
+    sprites.forEach(sprite => {
+        if (sprite.type != "platform") { return; }
+        if (sprite.rotation > 0) {
             x_offset = 5;
             y_offset = 12;
         } else {
             x_offset = 12;
             y_offset = 5;
         }
-        if (obj.x < platform.x + x_offset && obj.x + obj.width > platform.x - x_offset &&
-            obj.y < platform.y + y_offset && obj.y + obj.height > platform.y - y_offset) {
-                // horizontal movement
-                if (moveMask & 1) {
-                    if (obj.x+(obj.width/2) < platform.x) {
-                        obj.x = platform.x - (obj.width+x_offset);
-                    } else {
-                        obj.x = platform.x + x_offset;
-                    }
-                }
-                if (moveMask & 2) {
-                    obj.dy = 0;
-                    if (obj.y+(obj.height/2) < platform.y) {
-                        obj.y = platform.y - (obj.height+y_offset);
-                        if (!(obj.grounded === null)) {
-                            obj.grounded = true;
-                        }
-                    } else {
-                        obj.y = platform.y + y_offset;
-                    }
-                }
-                hit = true;
+        if (obj.x < sprite.x + x_offset && obj.x + obj.width > sprite.x - x_offset &&
+            obj.y < sprite.y + y_offset && obj.y + obj.height > sprite.y - y_offset) {
+            objs.push(sprites.indexOf(sprite));
+            // horizontal checks
+            if (obj.x+(obj.width/2) < sprite.x) {
+                hit |= 2; // left of object
+            } else {
+                hit |= 1; // right of object
+            }
+            if (obj.y+(obj.height/2) < sprite.y) {
+                hit |= 8; // below object
+            } else {
+                hit |= 4; // above object
+            }
         }
     })
-    return hit;
+    return {mask: hit, objects: objs};
 }
 
 function filterInputs(mask) {
@@ -608,6 +611,30 @@ function spawnPlayer(x,y) {
                 this.grounded = true;
                 this.y = worldFloor;
             }
+            if (!this.grounded && collidePlatforms(this).mask & 8) {// floors
+                while (collidePlatforms(this).mask & 8) { 
+                    this.grounded = true;
+                    this.dy = 0;
+                    this.y -= this.ddy;
+                }
+            }
+            if (!this.grounded && collidePlatforms(this).mask & 4) { // ceilings
+                let ticks; ticks = 0;
+                while (collidePlatforms(this).mask & 4) {
+                    this.dy = this.ddy;
+                    this.y += this.ddy;
+                    ticks += 1;
+                    if (ticks > 5) {
+                        if (getWorldFloor(this.x-3, this.width, this.height) > getWorldFloor(this.x+3, this.width, this.height)) {
+                            this.x -= this.dx;
+                        } else {
+                            this.x += this.dx;
+                        }
+                        this.y += this.dx;
+                        break;
+                    }
+                }
+            }
             if (this.grounded) {
                 this.jumped = false;
                 this.ddy = 0;
@@ -619,7 +646,6 @@ function spawnPlayer(x,y) {
                 
                 if (inputs[3] && this.id == activePlayer && currentMenu == 0) { // prevent jumps if building
                     this.dy = -5;
-                    this.y -= 5;
                     this.jumped = true;
                     zzfx(...jump_sfx);
                 }
@@ -649,11 +675,9 @@ function spawnPlayer(x,y) {
                     }
                 }
             });
-            collidePlatforms(this, 1);
             let prevX = this.x;
             this.advance();
             this.x = prevX;
-            collidePlatforms(this, 2);
             if (this.id != activePlayer) { return; }
             if (currentMenu > 0 && inMenuTransition == 0) {
                 cameraX += 5 * (inputs[5] - inputs[4]);
@@ -670,7 +694,14 @@ function spawnPlayer(x,y) {
                         this.playAnimation("walk");
                     }
                     let worldFloor = getWorldFloor(this.x, this.width, this.height);
-                    if (this.y - 8 > worldFloor) {
+                    if ((this.y - 8 > worldFloor) || (this.y > worldFloor && (collidePlatforms(this).mask & 4)) || (collidePlatforms(this).mask & 1)) {
+                        // if top of platform is less than 4 pixels up, snap to the top
+                        let hit = collidePlatforms(this).objects;
+                        if (hit.length > 0) {
+                            if (this.snapCheck(hit)) {
+                                this.x -= this.dx;
+                            }
+                        }
                         this.x += this.dx;
                     }
                 }
@@ -681,7 +712,13 @@ function spawnPlayer(x,y) {
                         this.playAnimation("walk");
                     }
                     let worldFloor = getWorldFloor(this.x, this.width, this.height);
-                    if (this.y - 8 > worldFloor) {
+                    if ((this.y - 8 > worldFloor) || (this.y > worldFloor && (collidePlatforms(this).mask & 4)) || (collidePlatforms(this).mask & 2)) {
+                        let hit = collidePlatforms(this).objects;
+                        if (hit.length > 0) {
+                            if (this.snapCheck(hit)) {
+                                this.x += this.dx;
+                            }
+                        }
                         this.x -= this.dx;
                     }
                 } else {
@@ -807,6 +844,18 @@ function spawnPlayer(x,y) {
                 c.restore();
                 
             }
+        },
+
+        snapCheck(items) {
+            let snapped = false;
+            items.forEach(i => {
+                let snapDistance = (sprites[i].y - (sprites[i].rotation > 0 ? 12 : 5)) - (this.height + this.y);
+                if (snapDistance <= 0 && snapDistance >= -4 && !snapped) {
+                    this.y += snapDistance;
+                    snapped = true;
+                }
+            });
+            return snapped;
         }
     });
     players.push(player);
@@ -878,6 +927,7 @@ let platform = Sprite({
     height: 10,
     rotation: rotated ? Math.PI / 2 : 0,
     image: (type == 0 ? wood: metal),
+    material: (type == 0 ? "wood": "metal"),
     type: "platform",
     render() {
         let c = this.context;
@@ -957,7 +1007,8 @@ function spawnPickup() {
                 this.y = getWorldFloor(this.x, this.width, this.height) - 0.5;
                 setTimer("end-turn",60,swapTurn);
             }
-            if (collidePlatforms(this,2)) {
+            if (collidePlatforms(this).mask & 8) {
+                this.y -= this.dy;
                 this.dy = 0;
                 this.ddy = 0;
                 setTimer("end-turn",60,swapTurn);

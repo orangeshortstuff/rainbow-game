@@ -73,3 +73,10 @@ aug 27th
 aug 29th
 - platforms now collide with bullets
 - player collision is still too buggy to be satisfied with
+
+aug 31st
+- platforms collide correctly with players (also implemented snapping up to platforms)
+- horns blow up on all platforms, drills go through wood, beams go through metal
+- sfx to do: footstep, build, destroy wood, destroy metal
+- still have the battle theme to write
+- bots after / alongside sfx and music
