@@ -80,3 +80,12 @@ aug 31st
 - sfx to do: footstep, build, destroy wood, destroy metal
 - still have the battle theme to write
 - bots after / alongside sfx and music
+
+sep 1st
+- rough loop for bot opponent: walk to pickup, pick valley to hide in / hill to fire from, get correct angle and power, fire
+- simming the mechanics in desmos for now
+- never mind i'm the goat. the error is multiplicative
+
+sep 2nd
+- patched out all the stupid bugs that come from me being smart enough to write the trajectory code but not smart enough to process it fully
+- bot movement away from finishing the hard parts of the programming

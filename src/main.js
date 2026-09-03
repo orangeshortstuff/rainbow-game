@@ -19,30 +19,6 @@ let error_sfx = [2.8,0,100,,,.07,1,1.8,,,,.07,.02,,37,,.08,.78,,,99];
 import { init, initKeys, Sprite, SpriteSheet, GameLoop, keyPressed, on, off, emit, bindKeys } from "../kontra.min.mjs"
 
 let { canvas } = init();
-/*
-const ws = new WebSocket('wss://relay.js13kgames.com/horns-of-war');
-ws.onopen = _ => {
-  ws.send('hello!')
-}
-ws.onmessage = event => {
-  const msg = event.data
-  switch (msg[0]) {
-    case '@':
-      console.log('My ID is:', msg.slice(1))
-      break
-
-    case '+':
-      console.log('A client connected, ID:', msg.slice(1))
-      break
-
-    case '-':
-      console.log('A client disconnected, ID:', msg.slice(1))
-      break
-
-    default:
-      console.log('Message:', msg)
-  }
-} */
 
 // left, right, down, jump, camera left/camera right, fire/place, select material / weapon, cancel, flip platform
 let controls = [
@@ -224,6 +200,51 @@ let cover = Sprite({
 sprites.push(cover);
 }
 
+function shotOffset(power, angle, t, flip) {
+    let magnitude = power * 0.18;
+    let v_x = magnitude*Math.cos((Math.PI / 180) * angle)*flip;
+    let v_y = magnitude*Math.sin((Math.PI / 180) * angle)*-1;
+    return {x: t*v_x+(t*t*windSpeed/2), y: t*v_y+(t*t*0.075)};
+}
+
+function solveShot(diff_x, diff_y) {
+    let flip = (diff_x < 0 ? -1 : 1);
+    let candidate_shots = [];
+    let power = 100, found_shot = false;
+    for (let angle = 85; angle >= 0; angle -= 5) {
+        power = 100;
+        // given the current angle, return the power to get a hit
+        // a is known (gravity), s is known (drop to other player), u (power) is searchable through, t is derivable
+        let min_power = (diff_y > 0 ? 0 : Math.pow((-0.3*diff_y),0.5)/0.18*((Math.sin((Math.PI / 180) * angle))));
+        if (min_power > power) { continue; }
+        for (let i = 0; i < 5; i++) {
+            let magnitude = power * 0.18;
+            let v_y = magnitude*Math.sin((Math.PI / 180) * angle)*-1;
+            let t = -(v_y/0.15) + Math.pow(((v_y * v_y) + 2*0.15*diff_y),0.5)/0.15;
+            let guess_x = shotOffset(power,angle,t,flip).x;
+            if (guess_x*flip < diff_x*flip && power == 100) { // if there's not enough power at max, skip
+                found_shot = true;
+                break;
+            }
+            if (Math.abs(guess_x-diff_x) < 10) {
+                candidate_shots.push([angle, power]);
+                found_shot = true;
+                break;
+            }
+            // distance is proportional to square of power, so power correction should be proportional to square root of error? it works
+            let nextPower = Math.min(Math.pow(diff_x/guess_x,0.5) * power,100);
+            if (nextPower < min_power) {
+                nextPower = (min_power + power) / 2;
+            }
+            power = nextPower;
+        }
+        if (!found_shot) {
+            candidate_shots.push([angle, power]); // push the best we have
+        }
+    }
+    return candidate_shots;
+}
+
 function makePreviewPoint(i) {
     let preview = Sprite({
         anchor: {x: 0.5, y: 0.5},
@@ -231,12 +252,10 @@ function makePreviewPoint(i) {
         color: `rgba(255, 255, 255, ${1-(i*0.03)})`,
         update() {
             let a = players[activePlayer];
-            let magnitude = a.power * 0.18;
-            let v_x = magnitude*Math.cos((Math.PI / 180) * a.angle)*a._fx;
-            let v_y = magnitude*Math.sin((Math.PI / 180) * a.angle)*-1;
             let t = (8-this.radius)*6;
-            this.x = a.x+ 8.5*(3*a._fx+1)+(t*v_x+(t*t*windSpeed/2));
-            this.y = a.y+(t*v_y+(t*t*0.075));
+            let res = shotOffset(a.power, a.angle, t, a._fx);
+            this.x = res.x + a.x+ 8.5*(3*a._fx+1);
+            this.y = res.y + a.y;
         },
         render() {
             if (currentMenu != 1) {return;}
@@ -415,8 +434,8 @@ let drill = Sprite({
         }
         if (this.y > getWorldFloor(this.x, this.width, this.height) || collidePlatforms(this).mask) {
             let hit = sprites[collidePlatforms(this).objects[0]];
-            if (hit){
-                if (hit.material == "wood") { hit.ttl = 0; }
+            if (hit && (hit.material == "wood")){
+                hit.ttl = 0;
             } else {
                 this.ttl = 0;
                 endTurn();
@@ -474,8 +493,8 @@ let beam = Sprite({
         }
         if (this.y > getWorldFloor(this.x, this.width, this.height) || this.y < 0 || collidePlatforms(this).mask)  {
             let hit = sprites[collidePlatforms(this).objects[0]];
-            if (hit){
-                if (hit.material == "metal") { hit.ttl = 0; }
+            if (hit && (hit.material == "metal")){
+                hit.ttl = 0;
             } else {
                 this.ttl = 0;
             endTurn();
@@ -611,15 +630,20 @@ function spawnPlayer(x,y) {
                 this.grounded = true;
                 this.y = worldFloor;
             }
-            if (!this.grounded && collidePlatforms(this).mask & 8) {// floors
+            let ticks; ticks = 0;
+            if (!this.grounded && collidePlatforms(this).mask & 8) { // floors
                 while (collidePlatforms(this).mask & 8) { 
                     this.grounded = true;
                     this.dy = 0;
                     this.y -= this.ddy;
+                    ticks += 1;
+                    if (ticks > 5) {
+                        this.y -= 1;
+                        break;
+                    }
                 }
             }
             if (!this.grounded && collidePlatforms(this).mask & 4) { // ceilings
-                let ticks; ticks = 0;
                 while (collidePlatforms(this).mask & 4) {
                     this.dy = this.ddy;
                     this.y += this.ddy;
@@ -679,6 +703,29 @@ function spawnPlayer(x,y) {
             this.advance();
             this.x = prevX;
             if (this.id != activePlayer) { return; }
+            if (this.id == activePlayer && this.id == gameType) {
+                // cpu
+                if (inMenuTransition == 0) {
+                    cameraX = this.x - 500;
+                }
+                if (currentMenu == 0) { // scout for pickups
+                    
+                }
+                if (currentMenu == 1) { // run to the hill / valley
+
+                }
+                if (currentMenu == 2) { // fire
+                    let shots = solveShot(players[1-this.id].x-this.x, players[1-this.id].y-this.y);
+                    console.log(shots);
+                    this.angle = Math.min(90,Math.max(0,shots[0][0]+(Math.random()*6)-3));
+                    this.power = Math.min(100,Math.max(0,shots[0][1]+(Math.random()*6)-3));
+                    this._fx = (this.x > players[0].x ? -1 : 1);
+                    console.log(this.angle, this.power);
+                    currentMenu = 0;
+                    this.fire();
+                }
+                
+            }
             if (currentMenu > 0 && inMenuTransition == 0) {
                 cameraX += 5 * (inputs[5] - inputs[4]);
             } else {
@@ -688,39 +735,10 @@ function spawnPlayer(x,y) {
             }
             if (currentMenu == 0) {
                 if (inputs[0]) {
-                    this.x -= this.dx;
-                    this._fx = -1;
-                    if (this.currentAnimation != this.animations["jump"] && this.currentAnimation != this.animations["fall"]) {
-                        this.playAnimation("walk");
-                    }
-                    let worldFloor = getWorldFloor(this.x, this.width, this.height);
-                    if ((this.y - 8 > worldFloor) || (this.y > worldFloor && (collidePlatforms(this).mask & 4)) || (collidePlatforms(this).mask & 1)) {
-                        // if top of platform is less than 4 pixels up, snap to the top
-                        let hit = collidePlatforms(this).objects;
-                        if (hit.length > 0) {
-                            if (this.snapCheck(hit)) {
-                                this.x -= this.dx;
-                            }
-                        }
-                        this.x += this.dx;
-                    }
+                    this.walk(-1);
                 }
                 else if (inputs[1]) {
-                    this.x += this.dx;
-                    this._fx = 1;
-                    if (this.currentAnimation != this.animations["jump"] && this.currentAnimation != this.animations["fall"]) {
-                        this.playAnimation("walk");
-                    }
-                    let worldFloor = getWorldFloor(this.x, this.width, this.height);
-                    if ((this.y - 8 > worldFloor) || (this.y > worldFloor && (collidePlatforms(this).mask & 4)) || (collidePlatforms(this).mask & 2)) {
-                        let hit = collidePlatforms(this).objects;
-                        if (hit.length > 0) {
-                            if (this.snapCheck(hit)) {
-                                this.x += this.dx;
-                            }
-                        }
-                        this.x -= this.dx;
-                    }
+                    this.walk(1);
                 } else {
                     this.playAnimation("idle");
                 }
@@ -741,35 +759,8 @@ function spawnPlayer(x,y) {
                 this.power += (inputs[1] - inputs[0]);
                 this.power = Math.max(0,Math.min(100,this.power));
                 if (inputs[6]) {
-                    let magnitude = this.power * 0.18;
-                    // -1, -17 / 1, 34
-                    switch(this.weapon) {
-                    case 1: { if (this.drills > 0) {
-                        this.drills--;
-                        if (this.drills == 0) { this.weapon = 0; }
-                        spawnDrill(this.x + 8.5*(3*this._fx+1),this.y,
-                            magnitude*Math.cos((Math.PI / 180) * this.angle)*this._fx,
-                            magnitude*Math.sin((Math.PI / 180) * this.angle)*-1);
-                        zzfx(...fire_sfx);
-                        inMenuTransition = 1;
-                        currentMenu = 0;
-                    } break; }
-                    case 2: { if (this.beams > 0) {
-                        this.beams--;
-                        if (this.beams == 0) { this.weapon = 0; }
-                        chargeBeam();
-                        zzfx(...beam_charge_sfx);
-                        inMenuTransition = 1;
-                        currentMenu = 0;
-                    } break; }
-                    default: spawnBullet(this.x + 8.5*(3*this._fx+1),this.y,
-                            magnitude*Math.cos((Math.PI / 180) * this.angle)*this._fx,
-                            magnitude*Math.sin((Math.PI / 180) * this.angle)*-1);
-                        zzfx(...fire_sfx);
-                        inMenuTransition = 1;
-                        currentMenu = 0;
-                    }
-                    
+                    currentMenu = 0;
+                    this.fire();
                 }
                 if (inputs[7] && inputSwitch == 0) {
                     this.weapon += 1;
@@ -846,6 +837,25 @@ function spawnPlayer(x,y) {
             }
         },
 
+        walk(direction) {
+            this.x += this.dx * direction;
+            this._fx = direction;
+            if (this.currentAnimation != this.animations["jump"] && this.currentAnimation != this.animations["fall"]) {
+                this.playAnimation("walk");
+            }
+            let worldFloor = getWorldFloor(this.x, this.width, this.height);
+            let dMask = (direction == 1 ? 2 : 1);
+            if ((this.y - 8 > worldFloor) || (this.y > worldFloor && (collidePlatforms(this).mask & 4)) || (collidePlatforms(this).mask & dMask)) {
+                let hit = collidePlatforms(this).objects;
+                if (hit.length > 0) {
+                    if (this.snapCheck(hit)) {
+                        this.x += this.dx * direction;
+                    }
+                }
+                this.x -= this.dx * direction;
+            }
+        },
+
         snapCheck(items) {
             let snapped = false;
             items.forEach(i => {
@@ -856,6 +866,37 @@ function spawnPlayer(x,y) {
                 }
             });
             return snapped;
+        },
+
+        fire () {
+            let magnitude = this.power * 0.18;
+            // -1, -17 / 1, 34
+            switch(this.weapon) {
+            case 1: { if (this.drills > 0) {
+                this.drills--;
+                if (this.drills == 0) { this.weapon = 0; }
+                spawnDrill(this.x + 8.5*(3*this._fx+1),this.y,
+                    magnitude*Math.cos((Math.PI / 180) * this.angle)*this._fx,
+                    magnitude*Math.sin((Math.PI / 180) * this.angle)*-1);
+                zzfx(...fire_sfx);
+                inMenuTransition = 1;
+                currentMenu = 0;
+            } break; }
+            case 2: { if (this.beams > 0) {
+                this.beams--;
+                if (this.beams == 0) { this.weapon = 0; }
+                chargeBeam();
+                zzfx(...beam_charge_sfx);
+                inMenuTransition = 1;
+                currentMenu = 0;
+            } break; }
+            default: spawnBullet(this.x + 8.5*(3*this._fx+1),this.y,
+                    magnitude*Math.cos((Math.PI / 180) * this.angle)*this._fx,
+                    magnitude*Math.sin((Math.PI / 180) * this.angle)*-1);
+                zzfx(...fire_sfx);
+                inMenuTransition = 1;
+                currentMenu = 0;
+            }
         }
     });
     players.push(player);
@@ -978,6 +1019,7 @@ function endTurn() {
     // callbacks must remove themselves
     off("timer-turn-timeout", endTurn);
     inMenuTransition = 1;
+    currentMenu = 0;
     setTimer("spawn-pickup",60,spawnPickup);
 }
 
@@ -1102,7 +1144,6 @@ const ps = document.querySelector(".play-s");
 ps.onclick = function() {gameType = 1; exitGame(); startGame();}
 const pm = document.querySelector(".play-m");
 pm.onclick = function() {gameType = 2; exitGame(); startGame();}
-const po = document.querySelector(".play-o");
 const inst = document.querySelector(".instructions");
 const sett = document.querySelector(".settings");
 
@@ -1131,7 +1172,9 @@ let loop = GameLoop({  // create the main game loop
             es.classList.add("hidden");
         }
     } else {
-        gc.classList.remove("none");
+        if (activePlayer != gameType) {
+            gc.classList.remove("none");
+        }
         timer.classList.remove("none");
         timer.innerHTML = `${(getTimers("turn-timeout")[0].ttl/60).toFixed(1)}`;
         wind.classList.remove("none");
