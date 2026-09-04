@@ -38,6 +38,7 @@ let gameType = 0; // 1 for vs bot, 2 for local multiplayer, 3 for online, 0 for 
 let seed = 0;
 let windSpeed = 0;
 let inputSwitch = 0, inputRotate = 0; // kontra 6 doesn't have onKey callbacks, so deal with weapon selection
+let validPlatform = false;
 
 const terrainLayers = 6;
 const baseTerrainPoints = 8;
@@ -238,7 +239,7 @@ function solveShot(diff_x, diff_y) {
             }
             power = nextPower;
         }
-        if (!found_shot) {
+        if (!found_shot && !isNaN(power)) {
             candidate_shots.push([angle, power]); // push the best we have
         }
     }
@@ -258,7 +259,7 @@ function makePreviewPoint(i) {
             this.y = res.y + a.y;
         },
         render() {
-            if (currentMenu != 1) {return;}
+            if (currentMenu != 1 || (gameType == activePlayer)) {return;}
             let c= this.context;
             c.save();
             c.translate(this.x-cameraX, this.y);
@@ -613,6 +614,7 @@ function spawnPlayer(x,y) {
         pl_y: 0,
         pl_type: 0,
         pl_rotate: 0,
+        target_x: 0,
         update() {
             let inputs; // left, right, down, jump, camera left/camera right, fire/place, select material / weapon, cancel
             if (gameType == 2) {
@@ -637,8 +639,8 @@ function spawnPlayer(x,y) {
                     this.dy = 0;
                     this.y -= this.ddy;
                     ticks += 1;
-                    if (ticks > 5) {
-                        this.y -= 1;
+                    if (ticks > 15) {
+                        this.y -= 0.5;
                         break;
                     }
                 }
@@ -648,7 +650,7 @@ function spawnPlayer(x,y) {
                     this.dy = this.ddy;
                     this.y += this.ddy;
                     ticks += 1;
-                    if (ticks > 5) {
+                    if (ticks > 15) {
                         if (getWorldFloor(this.x-3, this.width, this.height) > getWorldFloor(this.x+3, this.width, this.height)) {
                             this.x -= this.dx;
                         } else {
@@ -668,7 +670,8 @@ function spawnPlayer(x,y) {
                     this.playAnimation("idle");
                 }
                 
-                if (inputs[3] && this.id == activePlayer && currentMenu == 0) { // prevent jumps if building
+                if (inputs[3] && this.id == activePlayer && currentMenu == 0 || // prevent jumps if building
+                    (this.id == activePlayer && this.id == gameType && (getTimers("turn-timeout")[0].ttl%16 == 9))) { 
                     this.dy = -5;
                     this.jumped = true;
                     zzfx(...jump_sfx);
@@ -708,23 +711,7 @@ function spawnPlayer(x,y) {
                 if (inMenuTransition == 0) {
                     cameraX = this.x - 500;
                 }
-                if (currentMenu == 0) { // scout for pickups
-                    
-                }
-                if (currentMenu == 1) { // run to the hill / valley
-
-                }
-                if (currentMenu == 2) { // fire
-                    let shots = solveShot(players[1-this.id].x-this.x, players[1-this.id].y-this.y);
-                    console.log(shots);
-                    this.angle = Math.min(90,Math.max(0,shots[0][0]+(Math.random()*6)-3));
-                    this.power = Math.min(100,Math.max(0,shots[0][1]+(Math.random()*6)-3));
-                    this._fx = (this.x > players[0].x ? -1 : 1);
-                    console.log(this.angle, this.power);
-                    currentMenu = 0;
-                    this.fire();
-                }
-                
+                this.cpu();
             }
             if (currentMenu > 0 && inMenuTransition == 0) {
                 cameraX += 5 * (inputs[5] - inputs[4]);
@@ -740,7 +727,7 @@ function spawnPlayer(x,y) {
                 else if (inputs[1]) {
                     this.walk(1);
                 } else {
-                    this.playAnimation("idle");
+                    if (this.grounded) {this.playAnimation("idle")};
                 }
                 // reset the sprites position when it reaches the edge of the game
                 if (this.x > canvas.width*2 - this.width) {
@@ -775,11 +762,18 @@ function spawnPlayer(x,y) {
                 this.pl_x += 2*(inputs[1] - inputs[0]);
                 this.pl_x = Math.max(-84,Math.min(116,this.pl_x));
                 this.pl_y += 2*(inputs[2] - inputs[3]);
-                this.pl_y = Math.max(-116,Math.min(116,this.pl_y));
+                this.pl_y = Math.max(-84,Math.min(116,this.pl_y));
+                validPlatform = getWorldFloor(this.x+this.pl_x-10, this.pl_rotate ? 30 : 44, this.pl_rotate ? 44 : 30) > this.y+this.pl_y+50;
                 if (inputs[6]) {
                     if(this.pl_type == 1 ? (this.metal > 0) : (this.wood > 0)) {
                         spawnPlatform(this.x+this.pl_x, Math.round(this.y+this.pl_y), this.pl_rotate, this.pl_type);
-                        this.pl_type == 1 ? (this.metal--) : (this.wood--);
+                        // if it would hit either player, or it is less than 50 pixels off the ground, remove it
+                        if (collidePlatforms(players[0]).mask || collidePlatforms(players[1]).mask || !validPlatform ) {
+                            sprites[sprites.length-1].ttl = 0;
+                            zzfx(...error_sfx);
+                        } else {
+                            this.pl_type == 1 ? (this.metal--) : (this.wood--);
+                        }
                     } else {
                         zzfx(...error_sfx);
                     }
@@ -832,6 +826,10 @@ function spawnPlayer(x,y) {
                 c.translate(-12,-5);
                 let im = this.pl_type == 1 ? metal : wood;
                 c.drawImage(im,0,0);
+                if (!validPlatform) {
+                    c.fillStyle = "rgba(255 0 0 / 0.2)"
+                    c.fillRect(0,0,24,10);
+                }
                 c.restore();
                 
             }
@@ -848,7 +846,7 @@ function spawnPlayer(x,y) {
             if ((this.y - 8 > worldFloor) || (this.y > worldFloor && (collidePlatforms(this).mask & 4)) || (collidePlatforms(this).mask & dMask)) {
                 let hit = collidePlatforms(this).objects;
                 if (hit.length > 0) {
-                    if (this.snapCheck(hit)) {
+                    if (this.snapCheck(hit) && !(collidePlatforms(this).mask & dMask)) {
                         this.x += this.dx * direction;
                     }
                 }
@@ -897,7 +895,82 @@ function spawnPlayer(x,y) {
                 inMenuTransition = 1;
                 currentMenu = 0;
             }
-        }
+        },
+
+        cpu() {
+            let target_distance = this.target_x-this.x;
+            let ttl = getTimers("turn-timeout")[0].ttl;
+            let heuristic = (2700-ttl)+Math.abs(target_distance/3);
+            if (currentMenu == 0) { // scout for pickups
+                if (this.target_x == 0) {
+                    // find all pickups, and get the nearest one
+                    let pickups = sprites.filter(sprite => sprite.type == "pickup");
+                    let distances = pickups.map(p => p.x-(this.x+8));
+                    pickups = distances.map(d => Math.abs(d));
+                    this.target_x = distances[pickups.indexOf(Math.min(...pickups))]+(this.x-8);
+                    target_distance = this.target_x-this.x;
+                    return;
+                } else if (Math.abs(target_distance) > 2 && heuristic < 700) {
+                    this.walk(Math.round(Math.abs(target_distance)/target_distance)); // -1 if left, 1 if right
+                } else if (this.grounded) {
+                    currentMenu = 1; // end of state
+                    // 0 if found, -1 if blocked going left, -2 if blocked right
+                    this.target_x = (heuristic < 700 ? 0 : (target_distance < 0 ? -1 : -2));
+                }
+            }
+            if (currentMenu == 1) { // run to the hill / valley
+                if (heuristic > 1200) {
+                    this.target_x = (target_distance < 0 ? -1 : -2);
+                }
+                if (this.target_x < 1) {
+                    let totalPoints = (baseTerrainPoints*Math.pow(2,terrainLayers-1))+1;
+                    let blockWidth = (canvas.width*2/totalPoints);
+                    let mid_block = Math.floor((players[0].x+16)/(blockWidth));
+                    let heights = blocks.map(b => b.y);
+                    let left_bound = Math.max(2,mid_block-60);
+                    let right_bound = Math.min(254,mid_block+60);
+                    let near_heights = heights.slice(left_bound,right_bound);
+                    let far_heights = heights.slice(6,left_bound).concat(heights.slice(right_bound,250));
+                    let hill_idx = heights.indexOf(Math.min(...near_heights));
+                    let valley_idx = heights.indexOf(Math.max(...far_heights));
+                    if (this.target_x != 0) { // if blocked, run away from the pickups
+                        mid_block = Math.floor((players[1].x+16)/(blockWidth));
+                        if (this.target_x == -1) {
+                            let right_heights = heights.slice(mid_block+4,Math.min(250,mid_block+60));
+                            hill_idx = heights.indexOf(Math.min(...right_heights));
+                            valley_idx = heights.indexOf(Math.max(...right_heights));
+                        } else {
+                            let left_heights = heights.slice(Math.max(6,mid_block-60),mid_block-4);
+                            hill_idx = heights.indexOf(Math.min(...left_heights));
+                            valley_idx = heights.indexOf(Math.max(...left_heights));
+                        }
+                    }
+                    if (heights[mid_block]-heights[hill_idx] > 150 && heuristic < 1200) { // if you can get the high ground close, do so
+                        this.target_x = Math.round((hill_idx-2) * blockWidth);
+                    } else {
+                        this.target_x = Math.round((valley_idx-2) * blockWidth);
+                    }
+                    target_distance = this.target_x-this.x;
+                }
+                if (Math.abs(target_distance) > 2) {
+                    this.walk(Math.round(Math.abs(target_distance)/target_distance));
+                } else if (this.grounded) {
+                    currentMenu = 2; // end of state
+                    this.target_x = 0;
+                }
+            }
+            if (currentMenu == 2) { // fire
+                let shots = solveShot(players[1-this.id].x-this.x, players[1-this.id].y-this.y);
+                let powers = shots.map(s => s[1]);
+                let shot_idx = ( players[1].y-players[0].y > 120 ? powers.indexOf(Math.min(...powers)) : 0);
+                this.angle = Math.min(90,Math.max(0,shots[shot_idx][0]+(Math.random()*3)-1.5));
+                this.power = Math.min(100,Math.max(0,shots[shot_idx][1]+(Math.random()*3)-1.5));
+                this._fx = (this.x > players[0].x ? -1 : 1);
+                currentMenu = 0;
+                this.target_x = 0;
+                this.fire();
+            }
+        },
     });
     players.push(player);
 };
@@ -1192,7 +1265,7 @@ let loop = GameLoop({  // create the main game loop
     }
     if (gameType == 0) { sp.classList.remove("none"); } else { sp.classList.add("none"); }
     
-    if (keyPressed('p')){
+    if (keyPressed('v')){
         current_audio.stop();
         current_audio = zzfxP(...menu_data);
         current_audio.loop = true;

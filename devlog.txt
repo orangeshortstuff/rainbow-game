@@ -89,3 +89,8 @@ sep 1st
 sep 2nd
 - patched out all the stupid bugs that come from me being smart enough to write the trajectory code but not smart enough to process it fully
 - bot movement away from finishing the hard parts of the programming
+
+sep 3rd / 4th
+- finished the bot with a loop for movement
+- patched a long standing bug that let you clip through platforms if you were standing on one
+- platforms have to be a certain height off the ground, and can't collide with players
