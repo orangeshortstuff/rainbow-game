@@ -94,3 +94,15 @@ sep 3rd / 4th
 - finished the bot with a loop for movement
 - patched a long standing bug that let you clip through platforms if you were standing on one
 - platforms have to be a certain height off the ground, and can't collide with players
+
+sep 5th
+- start of the controls and settings section, in a little thing off to the side
+
+sep 6th
+- bot difficulty and terrain colouring
+- figure out how to turn the intro to solefall faire into a good enough melody for a full song?
+
+sep 7th
+- mute / unmute music
+- rolling fields on the title screen
+- actual ai changes rather than just better aim (will finish tomorrow)

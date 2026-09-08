@@ -1,4 +1,13 @@
-kontra (before tree-shaking) - ~6.5k zipped
-html (at present) - 1128
-images - 1082
-11288/13312 after rollup, roadroller, zip, advzip
+11861/13312 after rollup, roadroller, zip, advzip
+1451 bytes for:
+settings menu (+) + cpu difficulty (+) 
+extra decoration on the main menu (+)
+"biomes" - colours of terrain (+)
+decorative objects (trees, cacti, lollipops)*
+battle theme
+clouds in the sky
+rainbow rather than trans colours on the beam (+)
+noise texture for the ground
+rainbow trail on horn*
+
+* = stretch extras

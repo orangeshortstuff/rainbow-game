@@ -1,9 +1,7 @@
 import {zzfx, zzfxP, zzfxG, zzfxV, zzfxR, zzfxX, zzfxM} from  "../zzfxm.min.js";
-const menu_theme = [[[,0,254,,,.25],[,0,440,,,,,,,,,,,80,,,,.75],[.6,0,64,,,.32,2,.3]],[[[,,9,,,,9,,,,,,9,,,,7,,,,7,,,,,,7,,,,7,,,,],[,,13,,,,13,,,,,,13,,,,12,,,,12,,,,,,12,,,,12,,,,],[,,16,,,,16,,,,,,16,,,,14,,,,14,,,,,,14,,,,14,,,,],[2,,9,,,,16,,,,16,,9,,,,7,,,,,,,,,,,,5,,7,,8,,],[1,,,,,,1,,1,,,,,,1,,,,,,,,1,,1,,,,1,,,,1,,]],[[,,9,,,,9,,,,,,9,,,,7,,,,,,7,,,,,,,,,,,,],[,,13,,,,13,,,,,,13,,,,12,,,,,,12,,,,,,,,,,,,],[,,16,,,,16,,,,,,16,,,,14,,,,,,14,,,,,,,,,,,,],[2,,9,,,,16,,,,16,,9,,,,7,,,,,,19,,,,19,,18,,14,,15,,],[1,,,,,,1,,1,,,,,,1,,,,,,,,1,,1,,,,1,,1,,1,,]],[[,,9,,,,9,,,,,,9,,,,7,,,,7,,,,,,7,,,,7,,,,],[,,13,,,,13,,,,,,13,,,,12,,,,12,,,,,,12,,,,12,,,,],[,,16,,,,16,,,,,,16,,,,14,,,,14,,,,,,14,,,,14,,,,],[2,,16,,9,,,,,,,,9,,14,,7,,,,7,,,,,,7,,,,7,,,,],[1,,,,,,1,,1,,,,,,1,,,,,,,,1,,1,,,,1,,,,1,,]],[[,,5,,,,5,,,,,,5,,,,7,,,,7,,,,,,7,,,,7,,,,],[,,7,,,,7,,,,,,7,,,,5,,,,12,,,,,,12,,,,12,,,,],[,,12,,,,12,,,,,,12,,,,12,,,,14,,,,,,14,,,,14,,,,],[2,,5,,,,5,,,,2.5,,5,,,,5,,,,,,4,,,,4,,,,2,,,,],[1,,,,,,1,,1,,,,,,1,,,,,,,,1,,1,,,,1,,1,,1,,]],[[1,,,,,,1,,1,,,,,,1,,,,,,,,1,,1,,,,1,,,,1,,]],[[1,,,,,,1,,1,,,,,,1,,1,,,,,,1,,1,,,,1,,1,,1,,]],[[1,,,,,,1,,1,,,,1,,1.49,,1,,,,,,,,,,,,,,,,,,]]],[0,1,2,3,0,1,2,3,4,5,6],155,{"title":"menu theme","instruments":["a","b","c"],"patterns":["0","1","2","3","4","5","6"]}];
+const menu_theme = [[[,0,254,,,.25],[,0,440,,,,,,,,,,,80,,,,.75],[.6,0,64,,,.32,2,.3]],[[[,,9,,,,9,,,,,,9,,,,7,,,,7,,,,,,7,,,,7,,,,],[,,13,,,,13,,,,,,13,,,,12,,,,12,,,,,,12,,,,12,,,,],[,,16,,,,16,,,,,,16,,,,14,,,,14,,,,,,14,,,,14,,,,],[2,,9,,,,16,,,,16.3,,9,,,,7,,,,,,,,,,,,5.5,,7,,8,,],[1,,,,,,1,,1,,,,,,1,,,,,,,,1,,1,,,,1,,,,1,,]],[[,,9,,,,9,,,,,,9,,,,7,,,,,,7,,,,,,,,,,,,],[,,13,,,,13,,,,,,13,,,,12,,,,,,12,,,,,,,,,,,,],[,,16,,,,16,,,,,,16,,,,14,,,,,,14,,,,,,,,,,,,],[2,,9,,,,16,,,,16.3,,9,,,,7,,,,,,19,,,,19,,18,,14,,15,,],[1,,,,,,1,,1,,,,,,1,,,,,,,,1,,1,,,,1,,1,,1,,]],[[,,9,,,,9,,,,,,9,,,,7,,,,7,,,,,,7,,,,7,,,,],[,,13,,,,13,,,,,,13,,,,12,,,,12,,,,,,12,,,,12,,,,],[,,16,,,,16,,,,,,16,,,,14,,,,14,,,,,,14,,,,14,,,,],[2,,16,,9,,,,,,,,9.3,,14,,7,,,,7,,,,,,7,,,,7,,,,],[1,,,,,,1,,1,,,,,,1,,,,,,,,1,,1,,,,1,,,,1,,]],[[,,5,,,,5,,,,,,5,,,,7,,,,7,,,,,,7,,,,7,,,,],[,,7,,,,7,,,,,,7,,,,5,,,,12,,,,,,12,,,,12,,,,],[,,12,,,,12,,,,,,12,,,,12,,,,14,,,,,,14,,,,14,,,,],[2,,5,,,,5,,,,2.5,,5,,,,5,,,,,,4,,,,4,,,,2,,,,],[1,,,,,,1,,1,,,,,,1,,,,,,,,1,,1,,,,1,,1,,1,,]],[[1,,,,,,1,,1,,,,,,1,,,,,,,,1,,1,,,,1,,,,1,,]],[[1,,,,,,1,,1,,,,,,1,,1,,,,,,1,,1,,,,1,,1,,1,,]],[[1,,,,,,1,,1,,,,1,,1.49,,1,,,,,,,,,,,,,,,,,,]]],[0,1,2,3,0,1,2,3,4,5,6],155,{"title":"menu theme","instruments":["a","b","c"],"patterns":["0","1","2","3","4","5","6"]}];
 let menu_data = zzfxM(...menu_theme);
-let current_audio = zzfxP(...menu_data);
-current_audio.loop = true;
-current_audio.stop();
+let current_audio;
 
 let fire_sfx = [,0,464,.01,.07,.08,2,2.5,-4,3,,,,,,,,.53,.09];
 let explode_sfx = [2,,33,.09,.15,.41,4,.2,-6,-1,,,,.1,,.6,.23,.38,.18];
@@ -16,7 +14,7 @@ let beam_charge_sfx = [.9,0,144,.05,.17,.83,1,3,.3,,,,,,,.1,,,.26];
 let beam_fire_sfx = [,0,165,.02,.4,1.21,2,3.3,-.15,,,,,,,,.17,.76,.19];
 let error_sfx = [2.8,0,100,,,.07,1,1.8,,,,.07,.02,,37,,.08,.78,,,99];
 
-import { init, initKeys, Sprite, SpriteSheet, GameLoop, keyPressed, on, off, emit, bindKeys } from "../kontra.min.mjs"
+import { init, initKeys, Sprite, SpriteSheet, GameLoop, keyPressed, on, off, emit, bindKeys, getContext } from "../kontra.min.mjs"
 
 let { canvas } = init();
 
@@ -26,6 +24,11 @@ let controls = [
     ["left","right","down","up", "k","l","b","n","m","j"]
 ];
 let weapon_names = ["Horn","Drill","Beam"];
+let terrain_colours = [
+    ["#008000","#713b22"],
+    ["#e0e017","#f7f720"],
+    ["#ba1084","#ed28af"],
+];
 let sprites = [];
 let blocks = [];
 let heightmap = [];
@@ -34,11 +37,15 @@ let activePlayer = 0;
 let cameraX = 0;
 let currentMenu = 0;
 let inMenuTransition = 0;
-let gameType = 0; // 1 for vs bot, 2 for local multiplayer, 3 for online, 0 for the lobby
+let gameType = 0; // 1 for vs bot, 2 for local multiplayer, 0 for the menu
 let seed = 0;
 let windSpeed = 0;
 let inputSwitch = 0, inputRotate = 0; // kontra 6 doesn't have onKey callbacks, so deal with weapon selection
 let validPlatform = false;
+let current_terrain = 0;
+let bot_difficulty = 3;
+let started = 0;
+let music = 1;
 
 const terrainLayers = 6;
 const baseTerrainPoints = 8;
@@ -135,23 +142,23 @@ function generateTerrain(seed) {
             render() {
                 // draw a right-facing triangle
                 let c = this.context;
-                c.strokeStyle = 'green';
-                c.fillStyle = 'green';
                 c.save();
+                c.strokeStyle = terrain_colours[current_terrain][0];
+                c.fillStyle = terrain_colours[current_terrain][0];
                 c.translate(this.x-cameraX, this.y);
                 c.beginPath();
                 c.moveTo(0, 0);
                 c.lineTo(this.width, this.drop);
-                c.lineTo(this.width, this.drop+20);
-                c.lineTo(0, 20);
+                c.lineTo(this.width, this.drop+12);
+                c.lineTo(0, 12);
                 c.fill();
                 c.closePath();
                 c.stroke();
-                c.strokeStyle = '#713b22';
-                c.fillStyle = '#713b22';
+                c.strokeStyle = terrain_colours[current_terrain][1];
+                c.fillStyle = terrain_colours[current_terrain][1];
                 c.beginPath();
-                c.moveTo(0, 20);
-                c.lineTo(this.width, this.drop+20);
+                c.moveTo(0, 12);
+                c.lineTo(this.width, this.drop+12);
                 c.lineTo(this.width, 600);
                 c.lineTo(0, 600);
                 c.fill();
@@ -246,11 +253,21 @@ function solveShot(diff_x, diff_y) {
     return candidate_shots;
 }
 
+function circle(x,y,r,col,c) {
+    c.save();
+    c.translate(x, y);
+    c.fillStyle = col;
+    c.beginPath();
+    c.arc(0, 0, r, 0, 2  * Math.PI);
+    c.fill();
+    c.restore();
+}
+
 function makePreviewPoint(i) {
     let preview = Sprite({
         anchor: {x: 0.5, y: 0.5},
         radius: (15-i)/2,
-        color: `rgba(255, 255, 255, ${1-(i*0.03)})`,
+        color: `rgba(255, 255, 255, ${1-(i*0.05)})`,
         update() {
             let a = players[activePlayer];
             let t = (8-this.radius)*6;
@@ -260,14 +277,7 @@ function makePreviewPoint(i) {
         },
         render() {
             if (currentMenu != 1 || (gameType == activePlayer)) {return;}
-            let c= this.context;
-            c.save();
-            c.translate(this.x-cameraX, this.y);
-            c.fillStyle = this.color;
-            c.beginPath();
-            c.arc(0, 0, this.radius, 0, 2  * Math.PI);
-            c.fill();
-            c.restore();
+            circle(this.x-cameraX, this.y,this.radius, this.color, this.context);
         }
     });
     sprites.push(preview);
@@ -289,14 +299,7 @@ function makeExplosionParticle(x,y) {
             }
         },
         render() {
-            let c= this.context;
-            c.save();
-            c.translate(this.x-cameraX, this.y);
-            c.fillStyle = this.color;
-            c.beginPath();
-            c.arc(0, 0, this.radius, 0, 2  * Math.PI);
-            c.fill();
-            c.restore();
+            circle(this.x-cameraX, this.y,this.radius, this.color, this.context);
         }
     });
     sprites.push(x_particle);
@@ -712,6 +715,7 @@ function spawnPlayer(x,y) {
                     cameraX = this.x - 500;
                 }
                 this.cpu();
+                return;
             }
             if (currentMenu > 0 && inMenuTransition == 0) {
                 cameraX += 5 * (inputs[5] - inputs[4]);
@@ -908,6 +912,9 @@ function spawnPlayer(x,y) {
                     let distances = pickups.map(p => p.x-(this.x+8));
                     pickups = distances.map(d => Math.abs(d));
                     this.target_x = distances[pickups.indexOf(Math.min(...pickups))]+(this.x-8);
+                    if (bot_difficulty < 3) {
+                        this.target_x = this.x;
+                    }
                     target_distance = this.target_x-this.x;
                     return;
                 } else if (Math.abs(target_distance) > 2 && heuristic < 700) {
@@ -945,7 +952,7 @@ function spawnPlayer(x,y) {
                             valley_idx = heights.indexOf(Math.max(...left_heights));
                         }
                     }
-                    if (heights[mid_block]-heights[hill_idx] > 150 && heuristic < 1200) { // if you can get the high ground close, do so
+                    if (heights[mid_block]-heights[hill_idx] > 150 && heuristic < 1200 && bot_difficulty > 2) { // if you can get the high ground close, do so
                         this.target_x = Math.round((hill_idx-2) * blockWidth);
                     } else {
                         this.target_x = Math.round((valley_idx-2) * blockWidth);
@@ -960,11 +967,13 @@ function spawnPlayer(x,y) {
                 }
             }
             if (currentMenu == 2) { // fire
+                // 4 and 5 should build if able - 5 should only go to cover on valleys
                 let shots = solveShot(players[1-this.id].x-this.x, players[1-this.id].y-this.y);
                 let powers = shots.map(s => s[1]);
-                let shot_idx = ( players[1].y-players[0].y > 120 ? powers.indexOf(Math.min(...powers)) : 0);
-                this.angle = Math.min(90,Math.max(0,shots[shot_idx][0]+(Math.random()*3)-1.5));
-                this.power = Math.min(100,Math.max(0,shots[shot_idx][1]+(Math.random()*3)-1.5));
+                let shot_idx = ( players[1].y-players[0].y < -120 ? powers.indexOf(Math.min(...powers)) : 0);
+                let range = [11,8,5,4,3][bot_difficulty-1];
+                this.angle = Math.min(90,Math.max(0,shots[shot_idx][0]+(Math.random()*range)-(range/2)));
+                this.power = Math.min(100,Math.max(0,shots[shot_idx][1]+(Math.random()*range)-(range/2)));
                 this._fx = (this.x > players[0].x ? -1 : 1);
                 currentMenu = 0;
                 this.target_x = 0;
@@ -1177,8 +1186,8 @@ etb.onclick = function() {endTurn();}
 function startGame() {
     seed = Date.now() & 0xFFFFFFFF;
     generateTerrain(seed);
-    spawnPlayer(300, 200);
-    spawnPlayer(1700, 200);
+    spawnPlayer(300, getWorldFloor(300,32,32));
+    spawnPlayer(1700, getWorldFloor(1700,32,32));
     unicorn_image.onload();
     unicorn_shift_image.onload();
     for(let i=0; i<10; i++) {
@@ -1205,20 +1214,29 @@ function exitGame() {
 
 const ex = document.querySelector(".end-quit");
 ex.onclick = function() {
-    gameType = 0; 
-    current_audio.stop();
-    current_audio = zzfxP(...menu_data);
-    current_audio.loop = true;
+    gameType = 0;
+    if (music) {
+        current_audio.stop();
+        current_audio = zzfxP(...menu_data);
+        current_audio.loop = true;
+    }
     exitGame();
 }
 
 const sp = document.querySelector(".menu-splash");
-const ps = document.querySelector(".play-s");
-ps.onclick = function() {gameType = 1; exitGame(); startGame();}
-const pm = document.querySelector(".play-m");
-pm.onclick = function() {gameType = 2; exitGame(); startGame();}
-const inst = document.querySelector(".instructions");
-const sett = document.querySelector(".settings");
+document.querySelector(".play-s").onclick = function() {gameType = 1; exitGame(); startGame();}
+document.querySelector(".play-m").onclick = function() {gameType = 2; exitGame(); startGame();}
+const se = document.querySelector(".settings");
+document.querySelector(".set").onclick = function() { se.classList.remove("none"); }
+document.querySelector(".s-close").onclick = function() { se.classList.add("none"); }
+document.querySelector(".b-plains").onclick = function() { current_terrain = 0; };
+document.querySelector(".b-desert").onclick = function() { current_terrain = 1; };
+document.querySelector(".b-candy").onclick = function() { current_terrain = 2; };
+const bot_d = document.querySelector(".bot-diff");
+document.querySelector(".diff-down").onclick = function() { bot_difficulty = Math.max(1,bot_difficulty-1); bot_d.innerHTML = bot_difficulty; };
+document.querySelector(".diff-up").onclick = function() { bot_difficulty = Math.min(5,bot_difficulty+1); bot_d.innerHTML = bot_difficulty; };
+document.querySelector(".mute").onclick = function() { music = 0; current_audio.stop(); }
+document.querySelector(".unmute").onclick = function() { music = 1; current_audio = zzfxP(...menu_data); current_audio.loop = true; }
 
 const timer = document.querySelector(".turn-timer");
 const wind = document.querySelector(".wind-speed");
@@ -1263,19 +1281,52 @@ let loop = GameLoop({  // create the main game loop
             default: break;
         }
     }
-    if (gameType == 0) { sp.classList.remove("none"); } else { sp.classList.add("none"); }
+    if (gameType == 0) { 
+        sp.classList.remove("none");
+    } else { 
+        sp.classList.add("none");
+    }
     
-    if (keyPressed('v')){
-        current_audio.stop();
-        current_audio = zzfxP(...menu_data);
-        current_audio.loop = true;
+    if (!started){
+        if (keyPressed('p')) {
+            current_audio = zzfxP(...menu_data);
+            current_audio.loop = true;
+            started = 1;
+            document.querySelector(".menu-buttons").classList.remove("hidden");
+        }
     }
 
     if (gameType == 0) {cameraX = 0; return;}
     cameraX = Math.min(canvas.width,Math.max(0, cameraX));
   },
   render() { // render the game state
-    if (!gameType > 0) {return;}
+    if (gameType < 1) {
+        let c = getContext();
+        circle(900,600,150,"#008000",c);
+        circle(900,600,130,"#00b800",c);
+        circle(650,560,200,"#008000",c);
+        circle(650,560,180,"#00b800",c);
+        circle(470,580,170,"#008000",c);
+        circle(470,580,150,"#00b800",c);
+        circle(290,560,220,"#008000",c);
+        circle(290,560,200,"#00b800",c);
+        circle(100,600,150,"#008000",c);
+        circle(100,600,130,"#00b800",c);
+        if (!started) {
+            c.save();
+            c.fillStyle = "rgba(0 0 0 / 0.2)";
+            c.fillRect(0,0,1000,600);
+            c.fillStyle = "#000";
+            c.fillRect(348,273,304,54);
+            c.fillStyle = "#fff";
+            c.fillRect(350,275,300,50);
+            c.fillStyle = "#000";
+            c.font = "30px system-ui";
+            c.fillText("Press P to start", 400, 310, 1000);
+            c.restore();
+        }
+        return;
+    }
     blocks.map(block => block.render());
     players.map(players => players.render());
     sprites.map(sprite => sprite.render());

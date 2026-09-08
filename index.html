@@ -158,8 +158,7 @@
             position:absolute;
             height:100%;
             width:100%;
-            p {
-                margin-bottom:0;
+            .title {
                 color:white;
                 -webkit-text-stroke:3px #111;
                 margin:0;
@@ -168,7 +167,7 @@
                 width:70%;
             }
             button {
-                background-color:#e2936f;
+                background-color:#6FAB3B;
                 border:4px solid #713b22;
             }
         }
@@ -181,19 +180,80 @@
             padding:10px;
             position:absolute;
             right:20px;
-            top:340px;
+            top:290px;
             transform:translateY(-50%);
+        }
+        .settings {
+            position:absolute;
+            top: 153px;
+            left: 2%;
+            width: 55%;
+            height: 70%;
+            outline:5px solid #713b22;
+            background-color:#bf6f4a;
+            align-items: center;
+            section {
+                display: flex;
+                justify-content: center;
+            }
+            button {
+                min-width: 58.4px;
+                margin: 0 10px;
+            }
+            .s-close {
+                position:absolute;
+                bottom: 10px;
+                left: 10px;
+            }
+            p {
+                color:white;
+                align-content: center;
+                margin: 0;
+            }
+            .s-header {
+                margin:0;
+                text-align:center;
+                display: block;
+                width:90%;
+                margin-left: 5%;
+                margin-bottom: 8px;
+            }
+            .bot-diff {
+                font-size: 32px;
+            }
         }
     </style>
     <canvas width="1000" height="600"></canvas>
     <section class="game-ui">
     <section class="menu-splash">
         <p class="title">HORNS OF WAR</p>
-        <div class="menu-buttons">
+        <div class="settings none">
+            <p class="s-header">Bot difficulty:</p>
+            <section>
+            <button class="diff-down">-</button>
+            <p class="bot-diff">3</p>
+            <button class="diff-up">+</button>
+            </section>
+            <p class="s-header">(1 is easiest, 5 is very difficult)</p>
+            <br>
+            <p class="s-header">Terrain colors:</p>
+            <section>
+            <button class="b-plains">Plains</button>
+            <button class="b-desert">Desert</button>
+            <button class="b-candy">Candy</button>
+            </section>
+            <br>
+            <p class="s-header">Music:</p>
+            <section>
+            <button class="mute">Off</button>
+            <button class="unmute">On</button>
+            </section>
+            <button class="s-close">Close</button>
+        </div>
+        <div class="menu-buttons hidden">
             <button class="play-s">Play Singleplayer</button>
             <button class="play-m">Play Multiplayer</button>
-            <button class="inst">Instructions</button>
-            <button class="menu-settings">Settings</button>
+            <button class="set">Settings</button>
         </div>
     </section>
     <p class="turn-timer none"></p>
