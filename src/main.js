@@ -26,8 +26,8 @@ let controls = [
 let weapon_names = ["Horn","Drill","Beam"];
 let terrain_colours = [
     ["#008000","#713b22"],
-    ["#e0e017","#f7f720"],
-    ["#ba1084","#ed28af"],
+    ["#c2b180","#d9c29b"],
+    ["#d99bc6", "#bc1085"],
 ];
 let sprites = [];
 let blocks = [];
@@ -521,26 +521,19 @@ let beam = Sprite({
         });
     },
     render() {
+        let beams = [["#E40303", -10],["#FF8C00", -6],["#FFED00", -2],["#008026", 2],["#004CFF", 6],["#732982", 10]];
         let c = this.context;
         c.save();
         c.translate(this.s_x-cameraX, this.s_y);
-        c.strokeStyle = "#5BCEFA";
-        c.lineWidth = 25;
-        c.beginPath();
-        c.moveTo(0, 0);
-        c.lineTo(this.x-this.s_x, this.y-this.s_y);
-        c.stroke();
-        c.strokeStyle = "#F5A9B8";
-        c.lineWidth = 15;
-        c.moveTo(0, 0);
-        c.lineTo(this.x-this.s_x, this.y-this.s_y);
-        c.stroke();
-        c.strokeStyle = "white";
-        c.lineWidth = 5;
-        c.moveTo(0, 0);
-        c.lineTo(this.x-this.s_x, this.y-this.s_y);
-        c.stroke();
-        c.closePath();
+        c.lineWidth = 4;
+        beams.forEach(b => {
+            c.beginPath();
+            c.strokeStyle = b[0];
+            c.moveTo(0, b[1]);
+            c.lineTo(this.x-this.s_x, (this.y+b[1])-this.s_y);
+            c.stroke();
+            c.closePath();
+        })
         c.restore();
     },
 });
@@ -591,6 +584,40 @@ function filterInputs(mask) {
         }}
     )
     return inputs;
+}
+
+function spawnCloud(dir) {
+    let cloud = Sprite({
+        x: dir ? 2000+(Math.random()*600) : Math.random()*-600,
+        y: 20+(Math.random()*150),
+        dx: dir ? -0.1*(2+Math.random()) : 0.1*(2+Math.random()),
+        direction: dir,
+        parts: [],
+        update() {
+            this.advance();
+            this.x += (windSpeed*4);
+            if (this.x < -600 || this.x > 2600) {
+                this.ttl = 0;
+                spawnCloud(this.direction);
+            }
+        },
+        render() {
+            let c = this.context;
+            c.save();
+            c.fillStyle = "rgba(255, 255, 255, 0.5)"
+            c.translate(this.x-cameraX, this.y);
+            this.parts.forEach(p => c.fillRect(...p));
+            c.restore();
+        }
+    });
+    let parts = 4+(Math.random()*3);
+    for (let i = 0; i < parts; i++ ){
+        let block = [(Math.random()*40)-20,(Math.random()*40)-20,(Math.random()*40)+25,(Math.random()*20)+10];
+        block[0] -= block[2]/2;
+        block[1] -= block[3]/2;
+        cloud.parts.push(block);
+    }
+    sprites.push(cloud);
 }
 
 // pickups are +3 to ammo / material
@@ -912,7 +939,7 @@ function spawnPlayer(x,y) {
                     let distances = pickups.map(p => p.x-(this.x+8));
                     pickups = distances.map(d => Math.abs(d));
                     this.target_x = distances[pickups.indexOf(Math.min(...pickups))]+(this.x-8);
-                    if (bot_difficulty < 3) {
+                    if (bot_difficulty < 2) {
                         this.target_x = this.x;
                     }
                     target_distance = this.target_x-this.x;
@@ -952,10 +979,15 @@ function spawnPlayer(x,y) {
                             valley_idx = heights.indexOf(Math.max(...left_heights));
                         }
                     }
-                    if (heights[mid_block]-heights[hill_idx] > 150 && heuristic < 1200 && bot_difficulty > 2) { // if you can get the high ground close, do so
+                    if (heights[mid_block]-heights[hill_idx] > 120 && heuristic < 1200 && bot_difficulty > 2) { // if you can get the high ground close, do so
                         this.target_x = Math.round((hill_idx-2) * blockWidth);
                     } else {
                         this.target_x = Math.round((valley_idx-2) * blockWidth);
+                        let platforms = sprites.filter(s => s.type == "platform")
+                        let plat_distances = platforms.map(s => Math.abs(s.x-this.target_x));
+                        if (Math.min(...plat_distances) < 70 && bot_difficulty > 4) { // 5 should only go to cover on valleys
+                            this.target_x = platforms[plat_distances.indexOf(Math.min(...plat_distances))].x;
+                        }
                     }
                     target_distance = this.target_x-this.x;
                 }
@@ -967,14 +999,22 @@ function spawnPlayer(x,y) {
                 }
             }
             if (currentMenu == 2) { // fire
-                // 4 and 5 should build if able - 5 should only go to cover on valleys
                 let shots = solveShot(players[1-this.id].x-this.x, players[1-this.id].y-this.y);
                 let powers = shots.map(s => s[1]);
-                let shot_idx = ( players[1].y-players[0].y < -120 ? powers.indexOf(Math.min(...powers)) : 0);
+                let shot_idx = ( players[1].y-players[0].y < -80 ? powers.indexOf(Math.min(...powers)) : 0);
                 let range = [11,8,5,4,3][bot_difficulty-1];
                 this.angle = Math.min(90,Math.max(0,shots[shot_idx][0]+(Math.random()*range)-(range/2)));
                 this.power = Math.min(100,Math.max(0,shots[shot_idx][1]+(Math.random()*range)-(range/2)));
                 this._fx = (this.x > players[0].x ? -1 : 1);
+                // 4 and 5 should build if able
+                if ((this.wood > 0 || this.metal > 0) && bot_difficulty>3) {
+                    // find platforms by x - if closest is far away, place
+                    let plat_distances = sprites.filter(s => s.type == "platform").map(s => Math.abs(s.x-(this.x+16)));
+                    if (Math.min(...plat_distances) > 40) {
+                        spawnPlatform(this.x+16-(this._fx*12), Math.round(this.y-60), 0, this.metal>0 ? 1 : 0);
+                        if (this.metal>0) {this.metal--;} else {this.wood--;}
+                    }
+                }
                 currentMenu = 0;
                 this.target_x = 0;
                 this.fire();
@@ -1139,7 +1179,7 @@ function spawnPickup() {
             }
         },
         render() {
-            const pickup_icons = ["🩹","🪵","🪨","🔩","🏳️‍⚧️"]; // medkit, wood, metal, drill, beam
+            const pickup_icons = ["🩹","🪵","🪨","🔩","🏳️‍🌈"]; // medkit, wood, metal, drill, beam
             let c= this.context;
             c.save();
             c.translate(this.x-cameraX, this.y);
@@ -1192,6 +1232,7 @@ function startGame() {
     unicorn_shift_image.onload();
     for(let i=0; i<10; i++) {
         makePreviewPoint(i);
+        spawnCloud(Math.round(Math.random()));
     }
     setTimer("turn-timeout",2700,endTurn);
     windSpeed = 0;
@@ -1314,7 +1355,7 @@ let loop = GameLoop({  // create the main game loop
         circle(100,600,130,"#00b800",c);
         if (!started) {
             c.save();
-            c.fillStyle = "rgba(0 0 0 / 0.2)";
+            c.fillStyle = "rgba(0 0 0 / 0.5)";
             c.fillRect(0,0,1000,600);
             c.fillStyle = "#000";
             c.fillRect(348,273,304,54);

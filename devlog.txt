@@ -106,3 +106,13 @@ sep 7th
 - mute / unmute music
 - rolling fields on the title screen
 - actual ai changes rather than just better aim (will finish tomorrow)
+
+sep 8th
+- full set of ai behaviors.
+1 doesn't go for pickups
+1 and 2 will always hide in the valley
+3 doesn't place platforms, unlike 4 and 5
+4 won't run for cover under already placed platforms, unlike 5
+- beam now uses the rainbow from the pride flag, rather than the trans colours
+- clouds appear when in game
+- slightly different colours; desert is fine, but i'd like to fix candy to not be so garish
