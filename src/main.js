@@ -1,6 +1,8 @@
 import {zzfx, zzfxP, zzfxG, zzfxV, zzfxR, zzfxX, zzfxM} from  "../zzfxm.min.js";
 const menu_theme = [[[,0,254,,,.25],[,0,440,,,,,,,,,,,80,,,,.75],[.6,0,64,,,.32,2,.3]],[[[,,9,,,,9,,,,,,9,,,,7,,,,7,,,,,,7,,,,7,,,,],[,,13,,,,13,,,,,,13,,,,12,,,,12,,,,,,12,,,,12,,,,],[,,16,,,,16,,,,,,16,,,,14,,,,14,,,,,,14,,,,14,,,,],[2,,9,,,,16,,,,16.3,,9,,,,7,,,,,,,,,,,,5.5,,7,,8,,],[1,,,,,,1,,1,,,,,,1,,,,,,,,1,,1,,,,1,,,,1,,]],[[,,9,,,,9,,,,,,9,,,,7,,,,,,7,,,,,,,,,,,,],[,,13,,,,13,,,,,,13,,,,12,,,,,,12,,,,,,,,,,,,],[,,16,,,,16,,,,,,16,,,,14,,,,,,14,,,,,,,,,,,,],[2,,9,,,,16,,,,16.3,,9,,,,7,,,,,,19,,,,19,,18,,14,,15,,],[1,,,,,,1,,1,,,,,,1,,,,,,,,1,,1,,,,1,,1,,1,,]],[[,,9,,,,9,,,,,,9,,,,7,,,,7,,,,,,7,,,,7,,,,],[,,13,,,,13,,,,,,13,,,,12,,,,12,,,,,,12,,,,12,,,,],[,,16,,,,16,,,,,,16,,,,14,,,,14,,,,,,14,,,,14,,,,],[2,,16,,9,,,,,,,,9.3,,14,,7,,,,7,,,,,,7,,,,7,,,,],[1,,,,,,1,,1,,,,,,1,,,,,,,,1,,1,,,,1,,,,1,,]],[[,,5,,,,5,,,,,,5,,,,7,,,,7,,,,,,7,,,,7,,,,],[,,7,,,,7,,,,,,7,,,,5,,,,12,,,,,,12,,,,12,,,,],[,,12,,,,12,,,,,,12,,,,12,,,,14,,,,,,14,,,,14,,,,],[2,,5,,,,5,,,,2.5,,5,,,,5,,,,,,4,,,,4,,,,2,,,,],[1,,,,,,1,,1,,,,,,1,,,,,,,,1,,1,,,,1,,1,,1,,]],[[1,,,,,,1,,1,,,,,,1,,,,,,,,1,,1,,,,1,,,,1,,]],[[1,,,,,,1,,1,,,,,,1,,1,,,,,,1,,1,,,,1,,1,,1,,]],[[1,,,,,,1,,1,,,,1,,1.49,,1,,,,,,,,,,,,,,,,,,]]],[0,1,2,3,0,1,2,3,4,5,6],155,{"title":"menu theme","instruments":["a","b","c"],"patterns":["0","1","2","3","4","5","6"]}];
+const battle_theme = [[[.4,0,62,.01,.01,.25,2,.5],[.7,0,440,,,.22,,,,,,,,80,,,,.75],[1.3,0,110,,,.22,,,-1.5,,,,,,,,,.75],[.9,0,440,,,.44,,,,,,,,80,,,,.75],[.7,0,246,,,.34,2]],[[[,,3,,,,,,3,6,,,,,,,6,5,,,,,,,5,4,,,,,,,,,],[,,,3.3,15.3,3.3,13.3,15.3,.30000000000000004,.30000000000000004,.3,6.3,15.3,3.3,13.3,15.3,.30000000000000004,.30000000000000004,.30000000000000004,5.3,15.3,3.3,13.3,15.3,,,,4.3,15.3,13.3,10.3,9.3,6.3,1.3],[3,,1,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,1,,]],[[,,3,,22.5,15.5,20.5,22.5,3,6,,,10.5,15.5,20.5,22.5,6,5,,,,,,,5,3,,,,,,,,,],[,,.30000000000000004,3.3,15.3,3.3,13.3,15.3,.30000000000000004,.30000000000000004,.3,6.3,15.3,3.3,13.3,15.3,.30000000000000004,.30000000000000004,.30000000000000004,5.3,15.3,3.3,13.3,15.3,,,,15.3,13.3,10.3,9.3,8.3,6.3,5.3],[3,,1,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,1,,],[4,,,,,,,,,,,,10.5,3.5,8.5,10.5,,,,,15.5,3.5,13.5,15.5,,,,,,,,,,,],[2,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,10,10,,,]],[[,,3,,3,3,3,3,,3,,3,3,3,3,3,3,6,,6,6,6,6,6,8,5,,5,5,5,,5,5,,],[2,,10,,,,10,10,,10,,10,,,10,10,,,10,,,,10,10,,10,,10,,,10,10,,,],[1,,,,10,,,,10,,,,10,,,,10,,,,10,,,,10,,,,10,,,,10,,]],[[,,3,,3,3,3,3,,3,,3,3,3,3,3,3,6,,6,6,6,6,6,8,5,,5,5,5,,5,5,,],[2,,10,,,,10,10,,10,,10,,,10,10,,,10,,,,10,10,,10,,10,,,10,10,,,],[1,,,,10,,,,10,,,,10,,,,10,,,,10,,,,10,,,,10,,,,10,,],[4,,10,,,,,8,6,5,,,,,,1,8,,8,,,,,6,5,3,,,,,,,,,]],[[,,3,,3,3,3,3,,3,,3,3,3,3,3,3,6,,6,6,6,6,6,8,5,,5,5,5,,5,5,,],[2,,10,,,,10,10,,10,,10,,,10,10,,,10,10,,,,,10,10,,,,,10,10,,,],[1,,,,10,,,,10,,,,10,,,,10,,,,10,,10,,,,10,,10,,,,10,,],[4,,10,,,,,8,6,5,,,,,,3,5,6,,3,6,8,,6,8,10,,11,10,,,,,,]],[[,,3,,3,3,3,3,,3,,3,3,3,3,3,3,6,,6,6,6,6,6,8,5,,5,5,5,,5,5,,],[2,,10,,,,10,10,,10,,10,,,10,10,,,10,10,,,,,10,10,,,,,10,10,,,],[1,,,,10,,,,10,,,,10,,,,10,,,,10,,10,,,,10,,10,,,,10,,],[4,,10,,,,,8,6,5,,,,,,3,5,6,,3,6,8,,6,8,10,,10,8,6,8,6,1,2]],[[,-.4,6,6,6,6,6,,6,6,,6,6,,6,18,,,5,5,5,5,5,,5,5,,10,8,6,8,6,,13],[4,,18,,,,,17,15,13,,,,,,10,,13,15,13,15,3,13,11,,10,,,,,,,,,],[2,,10,10,,,,,,,10,10,,,,,,,10,10,,,,,,,10,10,,,10,10,,,],[3,,,,10,,10,,10,,,,10,,10,,10,,,,10,,10,,10,,,,10,,,,10,10]],[[,,6,6,6,,6,6,6,8,,8,,8,,8,,8,15,,15,,15,15,15,15,,15,6,,13,,11,,],[4,,11,,,,,8,6,5,,1,,11,,10,,8,10,,,,,,,,,,,,,,,,],[2,,10,10,,,,,,10,,10,,10,,10,10,,10,10,,10,,,,10,,10,,10,,10,,,],[3,,,,10,,,,10,,,,10,,,,,10,,,10,,,,10,,,,10,,,,10,,]],[[,,10,10,10,,3,10,,,8,,8,8,,3,8,,6,6,6,,6,5,,3,3,3,,1,,,,,],[4,,18,,,,,17,15,13,,,,,,13,15,18,,13,15,20,,13,17,22,,23,22,,,,17,,],[2,,10,10,,,,,,10,,10,,10,,10,10,,10,10,,10,,,,10,,10,,10,,10,,,],[3,,,,10,,,,10,,,,10,,,,,10,,,10,,,,10,,,,10,,,,10,,]],[[,,6,6,6,,6,13,,6,5,,10,,10,10,13,,15,,3,,3,3,3,,3,,3,,3,,,,],[4,,17,18,15,13,,13,15,18,20,,,,17,,,,15,,,,,,,,,,,,,,,,],[2,,10,10,,,,,,10,10,,,10,,,,,10,,,,10,10,,,,10,,,10,10,,,],[1,,,,10,,10,,,,,10,,,10,,10,,,,10,,,,10,,,,10,,,,10,,],[3,,,,,,,,,,,,,,,,,,10,,,,,,,,,,,,,,,,]],[[,,,10,8,6,8,6,1,3,,,,,,,,,],[2,,10,10,,10,,,,,,,,,,,,,],[1,,,,10,,10,,,,,,,,,,,,],[3,,,,,,,,,13,,,,,,,,,]]],[0,1,2,2,3,4,3,5,6,7,8,9,10],86,{"title":"battle","instruments":["bass","snare","kick","crash","lead"],"patterns":["intro","intro 2","post-intro","verse 1","verse 2","verse 4","chorus 1","chorus 2","chorus 3","chorus 4","outro"]}];
 let menu_data = zzfxM(...menu_theme);
+let battle_data = zzfxM(...battle_theme);
 let current_audio;
 
 let fire_sfx = [,0,464,.01,.07,.08,2,2.5,-4,3,,,,,,,,.53,.09];
@@ -27,7 +29,7 @@ let weapon_names = ["Horn","Drill","Beam"];
 let terrain_colours = [
     ["#008000","#713b22"],
     ["#c2b180","#d9c29b"],
-    ["#d99bc6", "#bc1085"],
+    ["#026b02", "#008000"],
 ];
 let sprites = [];
 let blocks = [];
@@ -1253,6 +1255,14 @@ function exitGame() {
     sprites = [];
 }
 
+function boot() {
+    current_audio = zzfxP(...menu_data);
+    current_audio.loop = true;
+    started = 1;
+    document.querySelector(".menu-buttons").classList.remove("hidden");
+    document.querySelector(".game-start").classList.add("none");
+}
+
 const ex = document.querySelector(".end-quit");
 ex.onclick = function() {
     gameType = 0;
@@ -1264,20 +1274,29 @@ ex.onclick = function() {
     exitGame();
 }
 
+function musicSwitch(data) {
+    if (music) {
+        current_audio.stop();
+        current_audio = zzfxP(...data);
+        current_audio.loop = true;
+    }
+}
+
 const sp = document.querySelector(".menu-splash");
-document.querySelector(".play-s").onclick = function() {gameType = 1; exitGame(); startGame();}
-document.querySelector(".play-m").onclick = function() {gameType = 2; exitGame(); startGame();}
+document.querySelector(".play-s").onclick = function() {gameType = 1; exitGame(); musicSwitch(battle_data); startGame();}
+document.querySelector(".play-m").onclick = function() {gameType = 2; exitGame(); musicSwitch(battle_data); startGame();}
 const se = document.querySelector(".settings");
 document.querySelector(".set").onclick = function() { se.classList.remove("none"); }
 document.querySelector(".s-close").onclick = function() { se.classList.add("none"); }
 document.querySelector(".b-plains").onclick = function() { current_terrain = 0; };
 document.querySelector(".b-desert").onclick = function() { current_terrain = 1; };
-document.querySelector(".b-candy").onclick = function() { current_terrain = 2; };
+document.querySelector(".b-swamp").onclick = function() { current_terrain = 2; };
 const bot_d = document.querySelector(".bot-diff");
 document.querySelector(".diff-down").onclick = function() { bot_difficulty = Math.max(1,bot_difficulty-1); bot_d.innerHTML = bot_difficulty; };
 document.querySelector(".diff-up").onclick = function() { bot_difficulty = Math.min(5,bot_difficulty+1); bot_d.innerHTML = bot_difficulty; };
 document.querySelector(".mute").onclick = function() { music = 0; current_audio.stop(); }
-document.querySelector(".unmute").onclick = function() { music = 1; current_audio = zzfxP(...menu_data); current_audio.loop = true; }
+document.querySelector(".unmute").onclick = function() { music = 1; musicSwitch(menu_data) }
+document.querySelector(".game-start").onclick = function() { boot(); }
 
 const timer = document.querySelector(".turn-timer");
 const wind = document.querySelector(".wind-speed");
@@ -1330,10 +1349,7 @@ let loop = GameLoop({  // create the main game loop
     
     if (!started){
         if (keyPressed('p')) {
-            current_audio = zzfxP(...menu_data);
-            current_audio.loop = true;
-            started = 1;
-            document.querySelector(".menu-buttons").classList.remove("hidden");
+            boot();
         }
     }
 
@@ -1357,13 +1373,6 @@ let loop = GameLoop({  // create the main game loop
             c.save();
             c.fillStyle = "rgba(0 0 0 / 0.5)";
             c.fillRect(0,0,1000,600);
-            c.fillStyle = "#000";
-            c.fillRect(348,273,304,54);
-            c.fillStyle = "#fff";
-            c.fillRect(350,275,300,50);
-            c.fillStyle = "#000";
-            c.font = "30px system-ui";
-            c.fillText("Press P to start", 400, 310, 1000);
             c.restore();
         }
         return;

@@ -222,6 +222,12 @@
                 font-size: 32px;
             }
         }
+        .game-start {
+            position:absolute;
+            top:50%;
+            left:50%;
+            transform:translateX(-50%) translateY(-50%);
+        }
     </style>
     <canvas width="1000" height="600"></canvas>
     <section class="game-ui">
@@ -240,7 +246,7 @@
             <section>
             <button class="b-plains">Plains</button>
             <button class="b-desert">Desert</button>
-            <button class="b-candy">Candy</button>
+            <button class="b-swamp">Swamp</button>
             </section>
             <br>
             <p class="s-header">Music:</p>
@@ -255,6 +261,7 @@
             <button class="play-m">Play Multiplayer</button>
             <button class="set">Settings</button>
         </div>
+        <button class="game-start">Click to start</button>
     </section>
     <p class="turn-timer none"></p>
     <p class="wind-speed none"></p>

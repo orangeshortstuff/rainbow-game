@@ -116,3 +116,6 @@ sep 8th
 - beam now uses the rainbow from the pride flag, rather than the trans colours
 - clouds appear when in game
 - slightly different colours; desert is fine, but i'd like to fix candy to not be so garish
+
+sep 9th
+- started work on the battle theme (last thing before i finish)
